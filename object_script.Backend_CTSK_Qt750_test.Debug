@@ -1,0 +1,12 @@
+INPUT(
+./debug\main.o
+./debug\mainwindow.o
+./debug\WorkThread.o
+./debug\CTouchPanelView.o
+./debug\ctrldialog.o
+./debug\backend_postp.o
+./debug\hid.o
+./debug\moc_mainwindow.o
+./debug\moc_CTouchPanelView.o
+./debug\moc_ctrldialog.o
+);

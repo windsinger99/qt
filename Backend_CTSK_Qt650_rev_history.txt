@@ -1,0 +1,81 @@
+Backend_CTSK_Qt650_test_211018A
+- 4-pen (30-mm) drawing
+
+Backend_CTSK_Qt650_test_211006B
+- libbackend_qtlib_650_211006A.a
+- change multi-touch min sq-size from 16.0f to 10.0f
+
+Backend_CTSK_Qt750_test_201217a
+- add KEY_S for fast recording (about 15ms)
+
+libbackend_irt750_nxp3_malloc_201127A
+- (bug-fix) palm + 1-pen, writing near palm
+
+libbackend_irt750_nxp3_malloc_201126A
+- (bug-fix) palm + 1-pen, fast & short down drawing
+
+Backend_CTSK_Qt750_malloc_201118A
+- improve edge touch for scroll
+
+Backend_CTSK_Qt750_malloc_201105
+- 
+
+backend_irt750_nxp3_malloc_201012a
+- remove BS_edge_pattern_poly
+
+backend_irt750_nxp3_200911B
+- copy from backend_irt850_nxp3_0814
+
+libbackend_irt750_nxp3_0311a
+- change palm size and ratio (0.75, 6000)
+
+libbackend_irt750_nxp3_0310b
+- bug fix th10 size 0 of marker around eraser
+- s_smooth_fileter() prevIdx => touchID
+
+libbackend_irt750_nxp3_0306K
+- speed up for 1-palm+1-pen
+
+libbackend_irt750_nxp3_0302a
+- min th10 size 9999 => 0
+- 2-pen/5-finegr edge performance
+
+libbackend_irt750_nxp3_brush_0227B
+- TP 30mm 이내에 brush mode 동작 하지 않도록 수정
+
+libbackend_irt750_nxp3_brush_0227A
+- small line for brush mode 
+
+libbackend_irt750_nxp3_200226D.a
+- libbackend_irt750_nxp3_200226C.a 기능취소
+- 같은 좌표 중복발생 제거
+
+libbackend_irt750_nxp3_200226C.a
+- edge에서 최소 line 5개에서 3개로 수정
+  (2-pen drawing 성능 저하예상)
+
+libbackend_irt750_nxp3_200226B.a
+- 큰물체 옆, 작은 물체 개선 
+
+libbackend_irt750_nxp3_200226A.a
+- new fine algorithm 
+
+libbackend_irt750_nxp2_200225A.a
+- th50 size보다 th10 size가 커지는 문제개선
+
+Backend_CTSK_750_200129a
+- complete fine test tool for new rule-1
+
+CTSK750B_1224D
+3. 멀티드로잉
+   3-1 얇은팬+굵은펜 동시드로잉 안됨
+   3-2 핑거_지우개 +펜
+   3-3 팜_지우개 + 펜
+   => 프로그램 버그수정
+4. 팜_지우게 지운후 잔상
+   => 지우개 부근(20mm) 펜터치 제거
+5. 얇은펜 기울이면 굵은펜으로변경
+   => 사양적용
+
+Backend_irt750_191217A
+- include DLT threshold

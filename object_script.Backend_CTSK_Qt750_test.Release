@@ -1,0 +1,12 @@
+INPUT(
+./release\main.o
+./release\mainwindow.o
+./release\WorkThread.o
+./release\CTouchPanelView.o
+./release\ctrldialog.o
+./release\backend_postp.o
+./release\hid.o
+./release\moc_mainwindow.o
+./release\moc_CTouchPanelView.o
+./release\moc_ctrldialog.o
+);
