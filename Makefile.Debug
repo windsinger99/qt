@@ -1040,8 +1040,7 @@ debug/mainwindow.o: mainwindow.cpp mainwindow.h \
 		C:/Qt/Qt5.8.0/5.8/mingw53_32/include/QtCore/QSettings \
 		C:/Qt/Qt5.8.0/5.8/mingw53_32/include/QtCore/qsettings.h \
 		C:/Qt/Qt5.8.0/5.8/mingw53_32/include/QtWidgets/QMessageBox \
-		C:/Qt/Qt5.8.0/5.8/mingw53_32/include/QtWidgets/qmessagebox.h \
-		backendLib/backend_common.h
+		C:/Qt/Qt5.8.0/5.8/mingw53_32/include/QtWidgets/qmessagebox.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o debug\mainwindow.o mainwindow.cpp
 
 debug/WorkThread.o: WorkThread.cpp WorkThread.h \

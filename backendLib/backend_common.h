@@ -96,9 +96,7 @@ extern "C" {
 //define DEBUG_SKIP_AFTER_MULTI
 //#define DEBUG_SKIP_AFTER_FINE
 #endif
-#define FINE_INITIAL_LINE_ADD //nsmoon@230418
-
-#define DRAW_THREAD
+#define FINE_INITIAL_LINE_CENT //nsmoon@230418
 
 //#define X_SLOPE_55  //nsmoon@200318
 #ifndef DEBUG_UNBLOCKED_LINE

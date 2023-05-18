@@ -293,9 +293,9 @@ extern int BS_get_clipping_range(axis_t axis, ep_min_max_t *minMaxEp, pos_min_ma
 extern int BS_get_virtual_range(axis_t axis, sen_type_t sen, ep_min_max_t *minMaxEp, pos_min_max_t *minMaxPos, int senNo, int st_ed);
 extern int BS_get_sensor_via_p2(float x1Pos, float y1Pos, float x2Pos, float y2Pos, float y3Pos, float *senPosRet);
 extern void BS_3point_angle(vec a, vec b, vec c, float *angle);
-#if 1 //nsmoon@230418
-extern int BS_get_int_min_max_init(int *max, int *idxMax, int maxCnt, int initVal);
-extern int BS_get_int_min_max(int *max, int *idxMax, int maxCnt, int idx, int val, int idxVal, int minMax);
+#if 1 //nsmoon@230412
+extern int BS_get_float_min_max_init(float *max, int *idxMax, int maxCnt, int minMax);
+extern int BS_get_float_min_max(float *max, int *idxMax, int maxCnt, int idx, float val, int idxVal, int minMax);
 #endif
 #ifdef USE_CUST_MALLOC //nsmon@201012
 extern uint32_t BS_start_of_heap;

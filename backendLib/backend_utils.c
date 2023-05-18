@@ -1233,16 +1233,17 @@ int BS_get_slope_sign(int led0, int pd0)
     return slopeSign;
 }
 
-#if 1 //nsmoon@230418
+#if 1 //nsmoon@230412
 #define DEBUG_BS_get_int_min_max    0
 #if (DEBUG_BS_get_int_min_max > 0)
 #define TRACE_GIMM(...)    TRACE(__VA_ARGS__)
 #else
 #define TRACE_GIMM(...)
 #endif
-int BS_get_int_min_max_init(int *max, int *idxMax, int maxCnt, int initVal)
+int BS_get_float_min_max_init(float *max, int *idxMax, int maxCnt, int minMax)
 {
     int i;
+    int initVal = (minMax > 0) ? 0 : MIN_INITIAL_VAL;
     for (i = 0; i < maxCnt; i++) {
         max[i] = initVal;
         idxMax[i] = -1;
@@ -1250,25 +1251,20 @@ int BS_get_int_min_max_init(int *max, int *idxMax, int maxCnt, int initVal)
     return 0;
 }
 
-int BS_get_int_min_max(int *max, int *idxMax, int maxCnt, int idx, int val, int idxVal, int minMax)
+int BS_get_float_min_max(float *max, int *idxMax, int maxCnt, int idx, float val, int idxVal, int minMax)
 {
     //minMax(1:max, -1:min)
     int sign = (minMax > 0) ? 1 : -1;
     if (idx < maxCnt) {
         if ((val * sign) > (max[idx] * sign)) {
             TRACE_GIMM("idx=%d %d", idx, val);
-            BS_get_int_min_max(max, idxMax, maxCnt, idx + 1, max[idx], idxMax[idx], minMax);
-            if (idx < maxCnt) {
+            BS_get_float_min_max(max, idxMax, maxCnt, idx + 1, max[idx], idxMax[idx], minMax);
             max[idx] = val;
             idxMax[idx] = idxVal;
-            }
-            else {
-                TRACE_ERROR("ERROR! BS_get_int_min_max..invalid idx %d %d", idx, maxCnt);
-            }
             return 1; //found
         }
         else {
-            if (BS_get_int_min_max(max, idxMax, maxCnt, idx + 1, val, idxVal, minMax)) {
+            if (BS_get_float_min_max(max, idxMax, maxCnt, idx + 1, val, idxVal, minMax)) {
                 return 1; //found
             }
         }

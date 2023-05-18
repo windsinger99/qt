@@ -116,13 +116,6 @@ typedef struct {
 	float *led_pos_y;		//Y led position table
 } DEF_TP_LAYOUT_INFO;
 
-typedef struct {
-    float minX;
-    float minY;
-    float maxX;
-    float maxY;
-} DEF_MIN_MAX;
-
 typedef enum
 {
 	INIT_SCAN = 0,

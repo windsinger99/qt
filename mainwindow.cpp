@@ -330,7 +330,6 @@ MainWindow::MainWindow(QWidget *parent) :
     pWorkThreak->start(QThread::NormalPriority);
 
     makeLogFile();
-    BG_set_debug_func(debug_func);
 
 #ifdef DRAW_THREAD
     m_Backend_Draw_Thread = new Backend_Draw_Thread();

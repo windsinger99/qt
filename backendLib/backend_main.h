@@ -59,11 +59,6 @@ int BG_init_backend(
     DEF_DEADCELL_INFO  *deadCellTbl, //dead cell table
 	uint16_t  init_flag          // reserved: 0
 );
-void BG_set_debug_func(void (*fuction)(DEF_MIN_MAX *before, DEF_MIN_MAX *after));
-typedef struct {
-  void (*BG_debug_function_pointer)(DEF_MIN_MAX *before, DEF_MIN_MAX *after);
-}typeDebug;
-extern typeDebug mDebug;
 #else
 int BG_init_backend(
 	DEF_TP_LAYOUT_INFO *tpLayout, 	//sensor laypout

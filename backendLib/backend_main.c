@@ -386,8 +386,6 @@ ATTR_BACKEND_RAM3 int BS_large_pitch_tbl_x_pd_cnt, BS_large_pitch_tbl_x_led_cnt;
 ATTR_BACKEND_RAM3 int BS_large_pitch_tbl_y_pd_cnt, BS_large_pitch_tbl_y_led_cnt;
 #endif
 
-typeDebug mDebug;
-
 #define MIN_LARGE_PITCH_X				10.5f //11.0f //12.0f
 #define MIN_LARGE_PITCH_Y				9.5f //9.0f //10.0f //11.0f //14.0f
 #ifdef DEBUG_FUNCTION_ENABLE_ALL
@@ -6065,7 +6063,7 @@ BACKEND_STATUS BG_call_backend2(
             }
 #if (DEBUG_SHOW_FRAME_NO > 0)
         if (retTmp > 0) {
-            TRACE("-fine-,%d,%0.2f,%0.2f,[%d]", BG_touch_count, BG_touch_area[0], BG_touch_area[1], BG_frame_no);
+            TRACE("-fine-,%d,%d %0.2f,%0.2f,", BG_touch_count, BG_frame_no, BG_touch_area[0], BG_touch_area[1]);
             IS_DEBUG_FLAG{
                 TRACE_NOP;
             };
@@ -6485,12 +6483,6 @@ L_BG_call_backend_mem_error:
     //TRACE("polgon_saved_idx= %d", polgon_saved_idx);
     DEBUG_GET_TIME_DIFF_SHOW();
     return SKIP_HID_REPORT; //skip hid report
-}
-
-ATTR_BACKEND_RAMFUNC
-void BG_set_debug_func(void (*fuction)(DEF_MIN_MAX *before, DEF_MIN_MAX *after))
-{
-    mDebug.BG_debug_function_pointer = fuction;
 }
 //////////////////////////////////////////////////////////////
 

@@ -33,11 +33,6 @@ extern "C" {
 #ifndef DEBUG_FRAME_NO
 #define DEBUG_FRAME_NO      0
 #endif
-#if defined(QT_NO_DEBUG) && (QT_NO_DEBUG == 1)
-//#error "Release Build"
-#else
-//#error "Debug Build"
-#endif
 
 #ifndef DEBUG_FRAME_PAUSE
 #if (DEBUG_FRAME_NO > 0)
@@ -328,8 +323,8 @@ extern const char *myGetLastErrorString2(DWORD error);
 #else //defined(_WIN32) || defined(WIN32)
 #define PS_START        0xFD
 #define PS_END          0xFE
-#define IS_DEBUG_FLAG   //if(0)
-#define IS_DEBUG_FLAG2  //if(0)
+#define IS_DEBUG_FLAG   if(0)
+#define IS_DEBUG_FLAG2  if(0)
 #define SET_DEBUG_FLAG2
 #define RESET_DEBUG_FLAG2
 #define IS_NOT_DEBUG_FLAG	if(1)

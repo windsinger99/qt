@@ -88,10 +88,6 @@ ATTR_BACKEND_RAM3 initial_line_a_t BS_initial_line_a_x[MAX_INITIAL_LINE_FINE_X];
 ATTR_BACKEND_RAM3 initial_line_a_t BS_initial_line_a_x2[MAX_INITIAL_LINE_FINE_X2];
 ATTR_BACKEND_RAM3 initial_line_a_t BS_initial_line_a_y[MAX_INITIAL_LINE_FINE_XY]; //nsmoon@230412 MAX_INITIAL_LINE_FINE_Y=>MAX_INITIAL_LINE_FINE_XY
 ATTR_BACKEND_RAM3 int BS_initial_line_a_x_cnt, BS_initial_line_a_x2_cnt, BS_initial_line_a_y_cnt; //BS_initial_line_a_x_cnt_real
-#if 1  //nsmoon@230425
-ATTR_BACKEND_RAM3 int BS_initial_line_a_x_slope, BS_initial_line_a_y_slope;
-ATTR_BACKEND_RAM3 vec_t BS_initial_cxp[MAX_INITIAL_LINE_FINE_XY];
-#endif
 
 #ifdef USE_CUST_MALLOC //nsmon@201012
 ATTR_BACKEND_RAM2 int BS_max_fine_rem_init_line;
@@ -783,7 +779,6 @@ int BS_fine_get_initial_ep5(axis_t axis, uint16_t *remLine, int *remLineCnt_in)
 #ifdef FINE_MAX_SLOPE_FIRST
     int slopeValMax;
 #endif
-    int initial_line_slope = 0; //nsmoon@230425
 #if (DEBUG_fine_get_initial_ep > 1)
     IS_DEBUG_FLAG{
         TRACE("*BS_fine_get_initial_ep5...%d", axis);
@@ -831,15 +826,19 @@ int BS_fine_get_initial_ep5(axis_t axis, uint16_t *remLine, int *remLineCnt_in)
         //FIXME, no-error
     }
 #endif
-#if (DEBUG_fine_get_initial_ep > 3)
+#if (DEBUG_fine_get_initial_ep > 2)
     IS_DEBUG_FLAG{
         TRACENR_FGIE("remLine[]: %d %d", axis, remLineCnt);
+        int tmpIdx = 0;
         for (i = 0; i < remLineCnt; i++) {
             tmpInBufIdx = remLine[i];
             if (!BS_getSenInBuf(axis, tmpInBufIdx, &pd0, &led0)) {
-                TRACE_FGIE(" %03d/%03d", pd0, led0);
+                if ((tmpIdx % 5) == 0) TRACENR_FGIE("\r\n %03d: ", i);
+                TRACENR_FGIE("%03d,%03d/%03d ", tmpInBufIdx, pd0, led0);
+                tmpIdx++;
             }
         }
+        TRACE_FGIE("...%d", tmpIdx);
     };
 #endif
 
@@ -864,11 +863,6 @@ int BS_fine_get_initial_ep5(axis_t axis, uint16_t *remLine, int *remLineCnt_in)
             continue;
         }
         slopeVal = led0 - pd0;
-#if 1 //nsmoon@230425
-        if (GET_ABS(slopeVal) > initial_line_slope) {
-            initial_line_slope = GET_ABS(slopeVal);
-        }
-#endif
 #if 0 //order-0: -10~0~+10
         slopeIdx = slopeValMax + slopeVal;
 #endif
@@ -907,33 +901,33 @@ int BS_fine_get_initial_ep5(axis_t axis, uint16_t *remLine, int *remLineCnt_in)
         TRACE_NOP;
     } //for (remLineIdx = 0; remLineIdx < remLineCnt; remLineIdx++)
 
-#if (DEBUG_fine_get_initial_ep > 3)
+#if (DEBUG_fine_get_initial_ep > 2)
     IS_DEBUG_FLAG{
-        TRACE_FGIE("remLineSlopeIdx[]: %d", remLineSlopeIdxCnt);
+        int tmpIdx = 0;
+        TRACENR_FGIE("remLineSlopeIdx[]: %d", remLineSlopeIdxCnt);
         for (i = 0; i < remLineSlopeIdxCnt; i++) {
             if (remLineSlopeIdx[i] < 0) continue;
             tmpInBufIdx = remLine[remLineSlopeIdx[i]];
             if (!BS_getSenInBuf(axis, tmpInBufIdx, &pd0, &led0)) {
-                TRACE_FGIE(" %03d,%03d/%03d", remLineSlopeIdx[i], pd0, led0);
+                if ((tmpIdx % 5) == 0) TRACENR_FGIE("\r\n %03d: ", tmpIdx);
+                TRACENR_FGIE("%03d,%03d/%03d ", remLineSlopeIdx[i], pd0, led0);
+                tmpIdx++;
             }
         }
         TRACE_FGIE("...%d", tmpIdx);
     };
 #endif
 #if (DEBUG_fine_get_initial_ep > 0)
-    IS_DEBUG_FLAG {
     for (i = 0; i < remLineSlopeIdxCnt; i++) {
         if (remLineSlopeIdx[i] < 0) continue;
         remLineIdx0 = remLineSlopeIdx[i];
         tmpInBufIdx = remLine[remLineIdx0];
         if (!BS_getSenInBuf(axis, tmpInBufIdx, &pd0, &led0)) {
-                int slopeVal = led0 - pd0;
             //IS_DEBUG_FLAG{ DEBUG_SHOW_LINE_PD_LED(axis, pd0, led0, MY_COLOR); };
-                TRACE_FGIE("  remLineSlopeIdxCnt=%d-%d %d-%d %d", axis, i, pd0, led0, slopeVal);
-                //break;
+            TRACE_FGIE("  pd0=%d %d", pd0, led0);
+            break;
         }
     }
-    };
 #endif
 
     /////////////////////////////////////
@@ -943,13 +937,6 @@ int BS_fine_get_initial_ep5(axis_t axis, uint16_t *remLine, int *remLineCnt_in)
     //senSumMax = 0;
     for (i = 0; i < remLineSlopeIdxCnt; i++) {
         if (remLineSlopeIdx[i] < 0) continue;
-#if (DEBUG_fine_get_initial_ep > 0)
-        IS_DEBUG_FLAG {
-            if (i == 6) {
-                TRACE_NOP;
-            }
-        };
-#endif
         remLineIdx0 = remLineSlopeIdx[i];
         tmpInBufIdx = remLine[remLineIdx0];
         if (!BS_getSenInBuf(axis, tmpInBufIdx, &pd0, &led0)) {
@@ -965,19 +952,11 @@ int BS_fine_get_initial_ep5(axis_t axis, uint16_t *remLine, int *remLineCnt_in)
             continue;
         }
 
-        slopeVal = led0 - pd0;
         for (remLineIdx = 0; remLineIdx < remLineCnt; remLineIdx++)
         {
             if (remLineIdx == remLineIdx0) continue;
             tmpInBufIdx = remLine[remLineIdx];
             if (!BS_getSenInBuf(axis, tmpInBufIdx, &pd1, &led1)) {
-#if 1 //nsmoon@230426
-                int slopeVal1 = led1 - pd1;
-                if ((slopeVal > 0 && slopeVal1 < 0) ||
-                        (slopeVal < 0 && slopeVal1 > 0) ) {
-                    continue;
-                }
-#endif
 #if 0 //(DEBUG_fine_get_initial_ep > 1)
                 IS_DEBUG_FLAG {
                     if (i == 17 && remLineIdx == 64) {
@@ -1020,16 +999,12 @@ int BS_fine_get_initial_ep5(axis_t axis, uint16_t *remLine, int *remLineCnt_in)
         }
     #if (DEBUG_fine_get_initial_ep > 2)
         IS_DEBUG_FLAG {
-            if (i == 6) {
-                uint8_t epaXcnt_str[100], idx = 0;
-                TRACE_FGIE("epaXCnt[]:(%d-%d/%d)", axis, i, epaXCnt);
+            TRACENR_FGIE("epaXCnt[]:(%d/%d)", i, epaXCnt);
             for (j = 0; j < epaXCnt; j++) {
-                    snprintf(&epaXcnt_str[idx], (100-idx), " %03d-%03d", epaX[j].e1, epaX[j].s1);
-                    idx += 8;
-                }
-                epaXcnt_str[idx] = '\0';
-                TRACE_FGIE("%s", epaXcnt_str);
+                if ((j % 10) == 0) TRACENR_FGIE("\r\n %03d: ", j);
+                TRACENR_FGIE("%03d/%03d ", epaX[j].e1, epaX[j].s1);
             }
+            TRACE_FGIE(".");
         };
 #endif
 
@@ -1148,7 +1123,7 @@ int BS_fine_get_initial_ep5(axis_t axis, uint16_t *remLine, int *remLineCnt_in)
 #endif
 #if (DEBUG_fine_get_initial_ep > 2)
         IS_DEBUG_FLAG { 
-            TRACE_FGIE("=>remInitLineIdxRes[]: (%d) %d %d", i, remInitLineIdxRes[i], slopeSum);
+            TRACE_FGIE("=>remInitLineIdxRes[]: (%d) %d", i, remInitLineIdxRes[i]);
         };
 #endif
 
@@ -1186,12 +1161,14 @@ int BS_fine_get_initial_ep5(axis_t axis, uint16_t *remLine, int *remLineCnt_in)
 #endif
     } //for (i = 0; i < remLineSlopeIdxCnt; i++)
 
-#if (DEBUG_fine_get_initial_ep > 3)
+#if (DEBUG_fine_get_initial_ep > 2)
     IS_DEBUG_FLAG{
-        TRACE_FGIE("remInitLineIdxRes[]:(%d)..",remLineSlopeIdxCnt);
+        TRACENR_FGIE("remInitLineIdxRes[]:(%d)..",remLineSlopeIdxCnt);
         int maxIdxTmp = -1, maxResTmp = 0;
         for (i = 0; i < remLineSlopeIdxCnt; i++) {
-            TRACE_FGIE("%03d,%03d ", remLineSlopeIdx[i], remInitLineIdxRes[i]);
+            //if (remLineSlopeIdx[i] < 0) continue;
+            if ((i % 10) == 0) TRACENR_FGIE("\r\n %03d: ", i);
+            TRACENR_FGIE("%03d,%03d ", remLineSlopeIdx[i], remInitLineIdxRes[i]);
             if (remInitLineIdxRes[i] > maxResTmp) {
                 maxResTmp = remInitLineIdxRes[i];
                 maxIdxTmp = remLineSlopeIdx[i];
@@ -1199,6 +1176,7 @@ int BS_fine_get_initial_ep5(axis_t axis, uint16_t *remLine, int *remLineCnt_in)
         }
         if (maxIdxTmp >= 0) {
             TRACE_FGIE("=>%d(%d)", maxIdxTmp, maxResTmp);
+            //TRACE_FGIE("remInitLineIdxMax: %d", remInitLineIdxMax);
         }
     };
 #endif
@@ -1236,11 +1214,9 @@ int BS_fine_get_initial_ep5(axis_t axis, uint16_t *remLine, int *remLineCnt_in)
     }
     if (axis == ENUM_HOR_X) {
         BS_initial_line_a_x_cnt = initialLineCnt;
-        BS_initial_line_a_x_slope = initial_line_slope; //nsmoon@230425
     }
     else {
         BS_initial_line_a_y_cnt = initialLineCnt;
-        BS_initial_line_a_y_slope = initial_line_slope; //nsmoon@230425
     }
 #if (DEBUG_fine_get_initial_ep > 1)
     IS_DEBUG_FLAG{ TRACE_FGIE("  initialLineCnt: %d %d", axis, initialLineCnt); };
@@ -1253,52 +1229,47 @@ int BS_fine_get_initial_ep5(axis_t axis, uint16_t *remLine, int *remLineCnt_in)
     return 0; //no-error
 }
 
-#ifdef FINE_INITIAL_LINE_ADD //nsmoon@230418
-#define SLOPE_MIN_MAX_LEN   2
-#define FINE_INIT_EP5_CENT_MIN_ONLY //nsmoon@230424
-static int fine_get_initial_ep5_cent()
+#ifdef FINE_INITIAL_LINE_CENT //nsmoon@230418
+int BS_fine_get_initial_ep5_cent()
 {
-    int i, contLoop;
+    int i, stopLoop;
     int remLineIdx0;
     initial_line_a_t *initial_line;
-    int initLineIdx;
-    int initialLineCnt0, initialLineCnt, initialLineCntMax, initialLineCntEnd;
+    int initLineIdx, initialLineCntDiff;
+    int initialLineCnt0, initialLineCnt, initialLineCntMax;
     int pd0, led0, pd1, led1;
-    int tmpInBufIdx, slopeVal;
-#ifdef FINE_INIT_EP5_CENT_MIN_ONLY //nsmoon@230424
-    int slopePdMin[SLOPE_MIN_MAX_LEN], slopePdMinIdx[SLOPE_MIN_MAX_LEN];
-#else
-    int slopeValMax;
-    int slopePdMin[SLOPE_MIN_MAX_LEN], slopePdMinIdx[SLOPE_MIN_MAX_LEN];
-    int slopePdMax[SLOPE_MIN_MAX_LEN], slopePdMaxIdx[SLOPE_MIN_MAX_LEN];
-#endif
+    int tmpInBufIdx;
+    int slopeVal0, slopeVal1;
     int remLineSlopeIdxCnt;
-    int remLineCnt, remLineIdx;
+    int remLineCnt;
     uint16_t *remLine;
+#ifdef FINE_MAX_SLOPE_FIRST
+    int slopeValMax;
+#endif
     int16_t *remLineSlopeIdx = &BS_rem_init_line_slope_idx[0];
     axis_t axis;
 
     if (BS_initial_line_a_x_cnt > BS_initial_line_a_y_cnt && BS_initial_line_a_x_cnt <= MAX_TOUCH_LIMIT_FINE) {
         axis = ENUM_VER_Y;
         initialLineCnt = BS_initial_line_a_y_cnt;
-        initialLineCntEnd = BS_initial_line_a_x_cnt;
     }
     else if (BS_initial_line_a_x_cnt < BS_initial_line_a_y_cnt && BS_initial_line_a_y_cnt <= MAX_TOUCH_LIMIT_FINE) {
         axis = ENUM_HOR_X;
         initialLineCnt = BS_initial_line_a_x_cnt;
-        initialLineCntEnd = BS_initial_line_a_y_cnt;
     }
     else {
-        return 0; //same
+        return 0; //no-error
     }
     initialLineCnt0 = initialLineCnt;
+    initialLineCntDiff = GET_ABS(BS_initial_line_a_x_cnt - BS_initial_line_a_y_cnt);
 
 #if (DEBUG_fine_get_initial_ep > 1)
     IS_DEBUG_FLAG{
-        TRACE_FGIE("***fine_get_initial_ep5_cent...%d %d", axis, initialLineCnt);
+        TRACE_FGIE("***BS_fine_get_initial_ep5_cent...%d %d %d", axis, initialLineCnt, initialLineCntDiff);
         TRACE_NOP;
     };
 #endif
+    //TRACE("remLineSlopeIdx= %x %x", remLineSlopeIdx, &BS_rem_init_line_slope_idx[0]);
     if (remLineSlopeIdx == 0) {
         TRACE_NOP;
     }
@@ -1310,7 +1281,7 @@ static int fine_get_initial_ep5_cent()
         remLine = &BS_remained_x[0];
         remLineCnt = BS_remained_x_cnt;
         remLineSlopeIdxCnt = BS_offsetTblLenX;
-#ifndef FINE_INIT_EP5_CENT_MIN_ONLY
+#ifdef FINE_MAX_SLOPE_FIRST
         slopeValMax = BS_slopeValMaxX;
 #endif
     }
@@ -1321,101 +1292,120 @@ static int fine_get_initial_ep5_cent()
         remLine = &BS_remained_y[0];
         remLineCnt = BS_remained_y_cnt;
         remLineSlopeIdxCnt = BS_offsetTblLenY;
-#ifndef FINE_INIT_EP5_CENT_MIN_ONLY
+#ifdef FINE_MAX_SLOPE_FIRST
         slopeValMax = BS_slopeValMaxY;
 #endif
     }
 
+#if 1 //nsmoon@201110
     if (remLineCnt > MAX_REMAINED_LINE) {
-        TRACE_ERROR("ERROR! fine_get_initial_ep5_cent..invalid remLineCnt: %d", remLineCnt);
+        TRACE_ERROR("ERROR! BS_fine_get_initial_ep5..invalid remLineCnt: %d", remLineCnt);
         remLineCnt = MAX_REMAINED_LINE;
         //FIXME, no-error
     }
-
-#ifdef FINE_INIT_EP5_CENT_MIN_ONLY //nsmoon@230424
-    BS_get_int_min_max_init(&slopePdMin[0], &slopePdMinIdx[0], SLOPE_MIN_MAX_LEN, MIN_INITIAL_VAL);
-#else
-    BS_get_int_min_max_init(&slopePdMin[0], &slopePdMinIdx[0], SLOPE_MIN_MAX_LEN, 0);
-    BS_get_int_min_max_init(&slopePdMax[0], &slopePdMaxIdx[0], SLOPE_MIN_MAX_LEN, MIN_INITIAL_VAL);
 #endif
+#if 1 //remained line index by slopeVal
+    int slopeVal, slopeIdx, remLineIdx;
 
+    //init
+    for (i = 0; i < BS_max_fine_rem_init_line; i++) {
+        remLineSlopeIdx[i] = -1;
+    }
+
+    //////////////////////////////////////////////
+    //find presentative line of each slope
+    //remLineSlopeIdxCnt = slopeValMax * 2 + 1; //x-axis only
+    //remLineIdxMinSlopeVal = -1;
     for (remLineIdx = 0; remLineIdx < remLineCnt; remLineIdx++)
     {
         tmpInBufIdx = remLine[remLineIdx];
         if (BS_getSenInBuf(axis, tmpInBufIdx, &pd0, &led0)) {
-            TRACE_ERROR("ERROR! fine_get_initial_ep5_cent..invalid tmpInBufIdx: %d", tmpInBufIdx);
+            //TRACE_ERROR("ERROR! BS_fine_get_initial_ep5..invalid inBufIdx: %d", tmpInBufIdx);
             continue;
         }
         slopeVal = led0 - pd0;
-#ifdef FINE_INIT_EP5_CENT_MIN_ONLY
-        BS_get_int_min_max(&slopePdMin[0], &slopePdMinIdx[0], SLOPE_MIN_MAX_LEN, 0, GET_ABS(slopeVal), remLineIdx, 0); //min slope
-#else
-        BS_get_int_min_max(&slopePdMax[0], &slopePdMaxIdx[0], SLOPE_MIN_MAX_LEN, 0, slopeVal, remLineIdx, 0); //min slope
-        BS_get_int_min_max(&slopePdMin[0], &slopePdMinIdx[0], SLOPE_MIN_MAX_LEN, 0, slopeVal, remLineIdx, 1); //max slope
+#if 0 //order-0: -10~0~+10
+        slopeIdx = slopeValMax + slopeVal;
 #endif
+#ifdef FINE_MAX_SLOPE_FIRST //order-1: +10,-10~1,-1,0 (0530)
+        if (slopeVal > 0) {
+            slopeIdx = (slopeValMax - slopeVal) * 2;
         }
+        else if (slopeVal < 0) {
+            int tmpIdx = (slopeValMax + slopeVal + 1);
+            slopeIdx = (tmpIdx * 2) - 1;
+        }
+        else {
+            slopeIdx = slopeValMax * 2;
+        }
+#endif
+#ifdef FINE_MIN_SLOPE_FIRST //order-2: 0,1,-1,~ (0613)
+        if (slopeVal > 0) {
+            slopeIdx = (slopeVal * 2) - 1;
+        }
+        else if (slopeVal < 0) {
+            slopeIdx = (-slopeVal) * 2;
+        }
+        else {
+            slopeIdx = 0;
+        }
+#endif
+#if (DEBUG_fine_get_initial_ep > 2)
+        IS_DEBUG_FLAG{ TRACE_FGIE("  ..slopeIdx:,%d,%d,%d,:,%d,%d", slopeIdx, slopeVal, tmpInBufIdx, led0, pd0); };
+#endif
+        if (slopeIdx < 0 || slopeIdx >= remLineSlopeIdxCnt) {
+            TRACE_ERROR("ERROR! BS_fine_get_initial_ep5..invalid slopeIdx: %d", slopeIdx);
+            //slopeIdx = 0;
+            continue;
+        }
+        remLineSlopeIdx[slopeIdx] = (int16_t)remLineIdx;
+        TRACE_NOP;
+    } //for (remLineIdx = 0; remLineIdx < remLineCnt; remLineIdx++)
+#endif //1
 
-        remLineSlopeIdxCnt = 0;
-        for (i = 0; i < SLOPE_MIN_MAX_LEN; i++) {
-#ifdef FINE_INIT_EP5_CENT_MIN_ONLY
-            if (slopePdMinIdx[i] < 0) break;
-            remLineSlopeIdx[remLineSlopeIdxCnt++] = slopePdMinIdx[i];
-#else
-        if (slopePdMaxIdx[i] >= 0) {
-            remLineSlopeIdx[remLineSlopeIdxCnt++] = slopePdMaxIdx[i];
-        }
-        if (slopePdMinIdx[i] >= 0) {
-            remLineSlopeIdx[remLineSlopeIdxCnt++] = slopePdMinIdx[i];
-        }
-#endif
-        }
-#if (DEBUG_fine_get_initial_ep > 1)
-    IS_DEBUG_FLAG{ TRACE_FGIE("  remLineSlopeIdxCnt=%d", remLineSlopeIdxCnt); }
-#endif
-
+    stopLoop = 0;
     for (i = 0; i < remLineSlopeIdxCnt; i++) {
+        if (remLineSlopeIdx[i] < 0) continue;
         remLineIdx0 = remLineSlopeIdx[i];
         tmpInBufIdx = remLine[remLineIdx0];
-        contLoop = 0;
         if (!BS_getSenInBuf(axis, tmpInBufIdx, &pd0, &led0)) {
+            TRACE_FGIE("  pd0=%d %d", pd0, led0);
             for (initLineIdx = 0; initLineIdx < initialLineCnt0; initLineIdx++) {
                 pd1 = initial_line[initLineIdx].line.pd;
                 led1 = initial_line[initLineIdx].line.led;
                 if (pd0 == pd1 && led0 == led1) {
-                    IS_DEBUG_FLAG{TRACE_FGIE("  skip~pd0=%d %d %d", i, pd0, led0);};
-                    contLoop = 1;
+                    continue;
+                }
+                slopeVal0 = led0 - pd0;
+                slopeVal1 = led1 - pd0;
+                if (GET_ABS(slopeVal0) > GET_ABS(slopeVal1)) {
                     break;
                 }
-                }
-            if (contLoop) continue;
-
 #if (DEBUG_fine_get_initial_ep > 0)
-            IS_DEBUG_FLAG{
-                TRACE_FGIE("  add~pd0=%d %d", pd0, led0);
-                DEBUG_SHOW_LINE_PD_LED(axis, pd0, led0, MY_COLOR);
-            };
+                TRACE_FGIE("  **pd0=%d %d", pd0, led0);
+                IS_DEBUG_FLAG{ DEBUG_SHOW_LINE_PD_LED(axis, pd0, led0, MY_COLOR); };
 #endif
                 if (initialLineCnt < initialLineCntMax) {
                     initial_line[initialLineCnt].line.pd = pd0;
                     initial_line[initialLineCnt].line.led = led0;
                     initialLineCnt++;
+                    initialLineCntDiff--;
                 }
                 else {
-                TRACE_ERROR("ERROR! fine_get_initial_ep5_cent..invalid initialLineCnt %d %d", initialLineCnt, initialLineCntMax);
+                    TRACE_ERROR("ERROR! BS_fine_get_initial_ep5_cent..invalid initialLineCnt %d %d", initialLineCnt, initialLineCntMax);
+                    stopLoop = 1;
                     break;
                 }
-#ifdef FINE_INIT_EP5_CENT_MIN_ONLY //nsmoon@230424
-            if (initialLineCnt >= initialLineCntEnd) {
+                if (initialLineCntDiff < 1) {
+                    stopLoop = 1;
                     break;
                 }
-#else
-            //if (initialLineCnt >= initialLineCntEnd && (initialLineCnt - initialLineCnt0) > 1) {
-            if ((initialLineCnt - initialLineCnt0) > 1) {
+            }
+            if (stopLoop) {
                 break;
             }
-#endif
         }
-    } //for (i = 0; i < remLineSlopeIdxCnt; i++)
+    }
 
     if (axis == ENUM_HOR_X) {
         BS_initial_line_a_x_cnt = initialLineCnt;
@@ -1424,7 +1414,7 @@ static int fine_get_initial_ep5_cent()
         BS_initial_line_a_y_cnt = initialLineCnt;
     }
 #if (DEBUG_fine_get_initial_ep > 1)
-    IS_DEBUG_FLAG{ TRACE_FGIE("  ..initialLineCnt:2: %d %d", axis, initialLineCnt); };
+    IS_DEBUG_FLAG{ TRACE_FGIE("  initialLineCnt.2. %d %d", axis, initialLineCnt); };
 #endif
     IS_DEBUG_FLAG{
         TRACE_NOP;
@@ -1923,7 +1913,7 @@ static int add_sen_epaX(int *epaXCnt0, uint8_t pd, uint8_t led)
     }
 }
 
-static int fine_get_initial_ep5_remained(axis_t axis, uint16_t *remLine, int *remLineCnt_in)
+int BS_fine_get_initial_ep5_remained(axis_t axis, uint16_t *remLine, int *remLineCnt_in)
 {
     int remLineIdx;
     initial_line_a_t *initial_line;
@@ -1960,15 +1950,13 @@ static int fine_get_initial_ep5_remained(axis_t axis, uint16_t *remLine, int *re
     }
 
     initialLineCntOrg = initialLineCnt;  //nsmoon@220126
-#if (DEBUG_fine_get_initial_ep > 1)
     IS_DEBUG_FLAG{
-        TRACE_FGIE("**fine_get_initial_ep5_remained...%d %d", axis, initialLineCnt);
+        TRACE("**BS_fine_get_initial_ep5_remained...%d %d", axis, initialLineCnt);
         TRACE_NOP;
     };
-#endif
 #if 1 //nsmoon@201110
     if (remLineCnt > MAX_REMAINED_LINE) {
-        TRACE_ERROR("ERROR! fine_get_initial_ep5_remained..invalid remLineCnt: %d", remLineCnt);
+        TRACE_ERROR("ERROR! BS_fine_get_initial_ep5_remained..invalid remLineCnt: %d", remLineCnt);
         remLineCnt = MAX_REMAINED_LINE;
         //FIXME, no-error
     }
@@ -2016,14 +2004,14 @@ static int fine_get_initial_ep5_remained(axis_t axis, uint16_t *remLine, int *re
                         add_sen_epaX(&epaXCnt, pd1, led1);
                     }
                     else {
-                        TRACE_ERROR("ERROR! fine_get_initial_ep5_remained..invalid initialLineCnt %d %d", initialLineCnt, initialLineCntMax);
+                        TRACE_ERROR("ERROR! BS_fine_get_initial_ep5_remained..invalid initialLineCnt %d %d", initialLineCnt, initialLineCntMax);
                         break;
                     }
                 }
             }
         }
         else {
-                TRACE_ERROR("ERROR! fine_get_initial_ep5_remained..invalid inBufIdx: %d", tmpInBufIdx);
+                TRACE_ERROR("ERROR! BS_fine_get_initial_ep5_remained..invalid inBufIdx: %d", tmpInBufIdx);
                 continue;
         }
     } //for (remLineIdx = 0; remLineIdx < remLineCnt; remLineIdx++)
@@ -2766,11 +2754,6 @@ static int fine_get_inst5(axis_t axis1, initial_line_a_t *initial_line, int init
     //init min/max index of group
     for (cxpIdx = cxpSt; cxpIdx < cxpEd; cxpIdx++)
     {
-#ifdef FINE_INITIAL_LINE_ADD //nsmoon@230425
-        if (calMode == FINE_CXP_CAL_INIT) {
-            if ((int)initial_line[initialLineIdx].cxpCent[cxpIdx].x == 0) continue;
-        }
-#endif
         //assign inst buf
         initial_line[initialLineIdx].inst_a[cxpIdx] = &BS_inst_xy[BS_inst_xy_cnt];
         initial_line[initialLineIdx].sort_a[cxpIdx] = &BS_inst_xy_sort[BS_inst_xy_cnt];
@@ -3704,7 +3687,7 @@ static int fine_make_group5_A(axis_t axis1, initial_line_a_t *initial_line, int 
 
         for (i = 0; i < gridCnt; i++) {
             int diffTmp = GET_ABS(grid_line[i] - grid_line_cur[i]);
-#if 0 //defined(N75_TEST) || defined(N65_TEST) //nsmoon@230328 //TestData_N75/TTR4_230321.dlt #75 //FIXME!!
+#if defined(N75_TEST) || defined(N65_TEST) //nsmoon@230328 //TTR4_230321.dlt #75 //FIXME!!
             if (grid_line[i] > 1 && grid_line_cur[i] == 0) {
                 diffTmp = 0xFF;
             }
@@ -7057,8 +7040,7 @@ static int fine_is_closed_tp_min_max(pos_min_max_t *mM0, int startIdx, int endId
     pos_min_max_t mM;
     vec_t centerPoint, touchHalfWidth;
     float diffDistX, diffDistY;
-    IS_DEBUG_FLAG{ TRACE_CDMM("fine_is_closed_tp_min_max..(%d,%d) %0.1f/%0.1f %0.1f/%0.1f",
-                              startIdx, endIdx, mM0->minX, mM0->maxX, mM0->minY, mM0->maxY); };
+    IS_DEBUG_FLAG{ TRACE_CDMM("fine_is_closed_tp_min_max..(%d,%d) %0.1f/%0.1f %0.1f/%0.1f", startIdx, endIdx, mM0->minX, mM0->maxX, mM0->minY, mM0->maxY); };
 
 #if 1 //nsmoon@200312
     for (tIdx = startIdx; tIdx < endIdx; tIdx++) {
@@ -7074,8 +7056,7 @@ static int fine_is_closed_tp_min_max(pos_min_max_t *mM0, int startIdx, int endId
         diffDistX = GET_MIN(diffDistX, GET_ABS(mM.minX - mM0->maxX));
         diffDistY = GET_MIN(GET_ABS(mM.minY - mM0->minY), GET_ABS(mM.maxY - mM0->maxY));
         diffDistY = GET_MIN(diffDistY, GET_ABS(mM.minY - mM0->maxY));
-        IS_DEBUG_FLAG {TRACE_CDMM("mM: %0.1f %0.1f (%0.1f/%0.1f %0.1f/%0.1f)",
-                                  diffDistX, diffDistY, mM.minX, mM.maxX, mM.minY, mM.maxY);};
+        IS_DEBUG_FLAG {TRACE_CDMM("mM: %0.1f %0.1f (%0.1f/%0.1f %0.1f/%0.1f)", diffDistX, diffDistY, mM.minX, mM.maxX, mM.minY, mM.maxY);};
 
         if (diffDistY < FINE_MAX_CLOSED_TP_MINMAX_GAP && diffDistX < FINE_MAX_CLOSED_TP_MINMAX_GAP) {
             IS_DEBUG_FLAG {TRACE_CDMM("CLOSED TP~~,%0.1f,%0.1f,", diffDistX, diffDistY);};
@@ -13084,7 +13065,7 @@ int BS_fine_add_remained_touch_brush2(int fineLoop)
 #endif //1
 
 #ifdef DEBUG_FUNCTION_ENABLE_ALL
-#define DEBUG_BG_clipping_fine5   1
+#define DEBUG_BG_clipping_fine5   0
 #endif
 #if (DEBUG_BG_clipping_fine5 > 0)
 #define TRACE_BCF5(...)     TRACE(__VA_ARGS__)
@@ -13121,206 +13102,13 @@ static int fine_is_closed_initial_tp_cent(int cxpCntMax, vec_t *cent)
 }
 #endif
 
-#ifdef FINE_INITIAL_LINE_ADD //nsmoon@230418
-#define FINE_NEAR_CXP_DIST  3.0f //2.0f //EPSILON //0.8f //1.5f //2.0f //nsmoon@230426 3.0f
-#define FINE_EDGE_NEAR_CXP_DIST  2.0f //0.5f
-#define FINE_NEAR_EDGE_SLOPE   15
-#ifdef DEBUG_FUNCTION_ENABLE_ALL
-#define DEBUG_fine_is_near_cross_point    1
-#endif
-static int fine_is_near_cross_point(int x_start, int line_idx_x_in, int cxpCnt_end_in, vec_t pR)
+static int fine_get_initial_tp(int fineLoop)
 {
-    int line_idx_x, cxpCnt, line_idx_x_end, cxpCnt_end, slopeMax;
-    initial_line_a_t *initial_line_x = &BS_initial_line_a_x[0];
-    vec_t cxp;
-    float distX, distY, distMax;
-
-    if (x_start) {
-        //add x line
-        line_idx_x_end = x_start;
-        slopeMax = BS_initial_line_a_x_slope;
-    }
-    else {
-        //add y line
-        line_idx_x_end = BS_initial_line_a_x_cnt;
-        slopeMax = BS_initial_line_a_y_slope;
-    }
-    if (slopeMax > FINE_NEAR_EDGE_SLOPE) {
-        distMax = FINE_NEAR_CXP_DIST;
-    }
-    else {
-        distMax = FINE_EDGE_NEAR_CXP_DIST;
-    }
-#if (DEBUG_fine_is_near_cross_point > 0)
-    TRACE("   slopeMax=%d %d %d %d %0.1f",
-          x_start, line_idx_x_in, cxpCnt_end_in, slopeMax, distMax);
-    float distX_min = MIN_INITIAL_VAL;
-    float distY_min = MIN_INITIAL_VAL;
-#endif
-
-    for (line_idx_x = 0; line_idx_x < line_idx_x_end; line_idx_x++)
-    {
-        if (x_start == 0) {
-            if (line_idx_x >= line_idx_x_in) {
-                continue;
-            }
-            else {
-                cxpCnt_end = cxpCnt_end_in;
-            }
-        }
-        else {
-            cxpCnt_end = (int)initial_line_x[line_idx_x].cxpCntMax;
-        }
-        for (cxpCnt = 0; cxpCnt < cxpCnt_end; cxpCnt++) {
-            cxp = initial_line_x[line_idx_x].cxpCent[cxpCnt];
-            distX = GET_ABS(cxp.x - pR.x);
-            distY = GET_ABS(cxp.y - pR.y);
-#if (DEBUG_fine_is_near_cross_point > 0)
-            IS_DEBUG_FLAG{
-                if (distY < distMax)
-                {
-                    TRACE("   ~~distX=(%d-%d) %0.2f %0.2f (%0.2f %0.2f)(%0.3f %0.2f)",
-                      line_idx_x, cxpCnt, distX, distY, cxp.x, cxp.y, pR.x, pR.y);
-                }
-            };
-#endif
-            if (distX < distMax && distY < distMax) {
-#if 0 //(DEBUG_fine_is_near_cross_point > 0)
-                IS_DEBUG_FLAG{TRACE("   --distX=(%d-%d) %0.2f %0.2f (%0.2f %0.2f)(%0.3f %0.2f)",
-                      line_idx_x, cxpCnt, distX, distY, cxp.x, cxp.y, pR.x, pR.y);};
-#endif
-                return 1; //closed
-            }
-#if (DEBUG_fine_is_near_cross_point > 0)
-#define DEBUG_FINE_NEAR_CXP_DIST 2
-            if (distX < distMax+DEBUG_FINE_NEAR_CXP_DIST && distY < distMax+DEBUG_FINE_NEAR_CXP_DIST) {
-                distX_min = distX;
-                distY_min = distY;
-            }
-#endif
-        }
-    }
-#if (DEBUG_fine_is_near_cross_point > 0)
-    TRACE("   distX_min=%0.2f %0.2f", distX_min, distY_min);
-#endif
-    return 0; //not-closed
-}
-
-static int fine_add_initial_cxp(axis_t axis, int initial_line_a_x_end, int initial_line_a_y_end, int line_idx_x_y_in)
-{
-    int x_start, x_end, y_start, y_end;
-    int line_idx_x_y = line_idx_x_y_in;
-    initial_line_a_t *initial_line_x = &BS_initial_line_a_x[0];
-    initial_line_a_t *initial_line_y = &BS_initial_line_a_y[0];
-    int line_idx_x, line_idx_y;
-    float *pdXpos = &BS_pd_pos_x[0];
-    float *ledXpos = &BS_led_pos_x[0];
-    float *pdYpos = &BS_pd_pos_y[0];
-    float *ledYpos = &BS_led_pos_y[0];
-    vec_t p0, p1, p2, p3, pR;
-    int pdX, ledX, pdY, ledY;
-    int cxpCntX;
-    IS_DEBUG_FLAG{
-        TRACE("fine_add_initial_cxp..%d %d %d %d", axis, initial_line_a_x_end, initial_line_a_y_end, line_idx_x_y);
-        TRACE_NOP;
-    }
-
-    if (axis == ENUM_HOR_X) {
-        //new x
-        x_start = initial_line_a_x_end;
-        x_end = BS_initial_line_a_x_cnt;
-        y_start = 0;
-        y_end = initial_line_a_y_end;
-    }
-    else {
-        //add y in x
-        x_start = 0;
-        x_end = BS_initial_line_a_x_cnt;
-        y_start = initial_line_a_y_end;
-        y_end = BS_initial_line_a_y_cnt;
-    }
-
-    for (line_idx_x = x_start; line_idx_x < x_end; line_idx_x++)
-    {
-        IS_DEBUG_FLAG{TRACE(" .line_idx_x=%d/%d", line_idx_x, x_end);};
-        pdX = initial_line_x[line_idx_x].line.pd;
-        ledX = initial_line_x[line_idx_x].line.led;
-        p0.x = ledXpos[ledX];
-        p0.y = BS_sensor_zero_y;
-        p1.x = pdXpos[pdX];
-        p1.y = BS_sensor_end_y;
-        DEBUG_SHOW_LINE_POS(&p0, &p1, line_idx_x);
-        if (axis == ENUM_HOR_X) {
-            //new x
-            initial_line_x[line_idx_x].cxpCntMax = 0; //init
-        }
-        cxpCntX = initial_line_x[line_idx_x].cxpCntMax;
-        for (line_idx_y = y_start; line_idx_y < y_end; line_idx_y++)
-        {
-            IS_DEBUG_FLAG{TRACE("  ..line_idx_y=%d/%d", line_idx_y, y_end);};
-            pdY = initial_line_y[line_idx_y].line.pd;
-            ledY = initial_line_y[line_idx_y].line.led;
-            p2.y = ledYpos[ledY];
-            p2.x = BS_sensor_end_x;
-            p3.y = pdYpos[pdY];
-            p3.x = BS_sensor_zero_x;
-            DEBUG_SHOW_LINE_POS(&p2, &p3, line_idx_y);
-            if (BS_line_intersection(&p0, &p1, &p2, &p3, &pR)) {
-                if (cxpCntX < MAX_FINE_INITIAL_CXP_PER_LINE) {
-                    if (line_idx_x_y < MAX_INITIAL_LINE_FINE_XY) { //nsmoon@230412 MAX_INITIAL_LINE_FINE_Y=>MAX_INITIAL_LINE_FINE_XY
-                        if (fine_is_near_cross_point(x_start, initial_line_a_x_end, cxpCntX, pR)) {
-                            IS_DEBUG_FLAG{TRACE("  closed+++");};
-                            initial_line_x[line_idx_x].cxpCent[cxpCntX].x = 0;
-                            initial_line_x[line_idx_x].cxpCent[cxpCntX].y = 0;
-                        }
-                        else {
-                            initial_line_x[line_idx_x].cxpCent[cxpCntX] = pR;
-                        }
-#if (DEBUG_fine_get_initial_ep > 0)
-                        IS_DEBUG_FLAG {
-                            int closed = (int)initial_line_x[line_idx_x].cxpCent[cxpCntX].x;
-                            IS_DEBUG_FLAG{TRACE("cxpCent2,'%d-%d,%d/%d,%0.2f %0.2f,%d-%d,%d-%d (%d)",
-                                       line_idx_x, line_idx_x_y, line_idx_y, cxpCntX, pR.x, pR.y, pdX, ledX, pdY, ledY, closed);};
-                        };
-#endif
-                        initial_line_x[line_idx_x].cxOppLine[cxpCntX] = (uint8_t)line_idx_x_y++;
-                        initial_line_x[line_idx_x].cxTcIdx[cxpCntX] = UINT8_MAX; //init
-                        initial_line_x[line_idx_x].sortLen_a[cxpCntX] = 0; //init
-                        initial_line_x[line_idx_x].score[cxpCntX] = 0; //init
-                        initial_line_x[line_idx_x].score2[cxpCntX] = 0; //init
-                        cxpCntX++;
-                    }
-                    else {
-                        TRACE_ERROR("ERROR! fine_get_initial_tp..invalid line_idx_x_y %d", line_idx_x_y);
-                break;
-            }
-        }
-                else {
-                    TRACE_ERROR("ERROR! fine_get_initial_tp..invalid cxpCntX %d", cxpCntX);
-                break;
-        }
-        }
-        } //for (line_idx_y = 0; line_idx_y < BS_initial_line_a_y_cnt; line_idx_y++)
-        initial_line_x[line_idx_x].cxpCntMax = (uint8_t)cxpCntX;
-    } //for (line_idx_x = 0; line_idx_x < BS_initial_line_a_x_cnt; line_idx_x++)
-
-    //init BS_initial_line_a_y[]
-    for (line_idx_y = line_idx_x_y_in; line_idx_y < line_idx_x_y; line_idx_y++)
-    {
-        initial_line_y[line_idx_y].cxpCntMax = 0; //init
-        initial_line_y[line_idx_y].cxLineIdx = UINT8_MAX; //init
-        initial_line_y[line_idx_y].cxGrpIdx = UINT8_MAX; //init
-        initial_line_y[line_idx_y].sortLen_a[0] = 0; //init //nsmoon@201019-bugfix
-    }
-    IS_DEBUG_FLAG{TRACE("BS_initial_line_a_x_cnt= %d %d %d", BS_initial_line_a_x_cnt, BS_initial_line_a_y_cnt, line_idx_x_y);}
-
-    return line_idx_x_y;
-    }
-#endif
-
-#if 1 //nsmoon@230425
-static int fine_get_initial_cxp(void)
-{
+    int ret;
+    uint16_t *remLineX = &BS_remained_x[0];
+    int remLineCntX = BS_remained_x_cnt;
+    uint16_t *remLineY = &BS_remained_y[0];
+    int remLineCntY = BS_remained_y_cnt;
     initial_line_a_t *initial_line_x = &BS_initial_line_a_x[0];
     initial_line_a_t *initial_line_y = &BS_initial_line_a_y[0];
     int line_idx_x_y, line_idx_x, line_idx_y;
@@ -13330,92 +13118,6 @@ static int fine_get_initial_cxp(void)
     float *ledYpos = &BS_led_pos_y[0];
     vec_t p0, p1, p2, p3, pR;
     int pdX, ledX, pdY, ledY;
-    IS_DEBUG_FLAG {
-        TRACE("fine_get_initial_cxp..");
-        TRACE_NOP;
-    }
-
-    line_idx_x_y = 0;
-    for (line_idx_x = 0; line_idx_x < BS_initial_line_a_x_cnt; line_idx_x++)
-    {
-        pdX = initial_line_x[line_idx_x].line.pd;
-        ledX = initial_line_x[line_idx_x].line.led;
-        p0.x = ledXpos[ledX];
-        p0.y = BS_sensor_zero_y;
-        p1.x = pdXpos[pdX];
-        p1.y = BS_sensor_end_y;
-#if 1 //def DEBUG_EP_TEST //(DEBUG_fine_get_inst > 0) //nsmoon@210216
-        //if (fineLoop >= FINE_LOOP_XY_ST && fineLoop <= FINE_LOOP_XY_ED)
-        {
-        DEBUG_SHOW_LINE_POS(&p0, &p1, line_idx_x);
-        }
-#endif
-        int cxpCntX = 0;
-        initial_line_x[line_idx_x].cxpCntMax = 0; //init
-        for (line_idx_y = 0; line_idx_y < BS_initial_line_a_y_cnt; line_idx_y++)
-        {
-            pdY = initial_line_y[line_idx_y].line.pd;
-            ledY = initial_line_y[line_idx_y].line.led;
-            p2.y = ledYpos[ledY];
-            p2.x = BS_sensor_end_x;
-            p3.y = pdYpos[pdY];
-            p3.x = BS_sensor_zero_x;
-#if 1 //def DEBUG_EP_TEST //(DEBUG_fine_get_inst > 0) //nsmoon@210216
-            //if (fineLoop >= FINE_LOOP_XY_ST && fineLoop <= FINE_LOOP_XY_ED)
-            {
-            DEBUG_SHOW_LINE_POS(&p2, &p3, line_idx_y);
-            }
-#endif
-            if (BS_line_intersection(&p0, &p1, &p2, &p3, &pR)) {
-                if (cxpCntX < MAX_FINE_INITIAL_CXP_PER_LINE) {
-                    if (line_idx_x_y < MAX_INITIAL_LINE_FINE_XY) { //nsmoon@230412 MAX_INITIAL_LINE_FINE_Y=>MAX_INITIAL_LINE_FINE_XY
-                        IS_DEBUG_FLAG{ TRACE_BCF5("cxpCent1,'%d-%d/%d,%d,%0.2f %0.2f,%d-%d,%d-%d",
-                                                   line_idx_x, line_idx_x_y, line_idx_y, cxpCntX, pR.x, pR.y, pdX, ledX, pdY, ledY); };
-                        //if (BG_touch_count == 0 && fine_is_closed_initial_tp_cent(cxpCntX, &pR)) //nsmoon@200924, not-use
-                        {
-                            initial_line_x[line_idx_x].cxpCent[cxpCntX] = pR;
-                            initial_line_x[line_idx_x].cxOppLine[cxpCntX] = (uint8_t)line_idx_x_y++;
-                            initial_line_x[line_idx_x].cxTcIdx[cxpCntX] = UINT8_MAX; //init
-                            initial_line_x[line_idx_x].sortLen_a[cxpCntX] = 0; //init
-                            initial_line_x[line_idx_x].score[cxpCntX] = 0; //init
-                            initial_line_x[line_idx_x].score2[cxpCntX] = 0; //init
-                            cxpCntX++;
-                        }
-                    }
-                    else {
-                        TRACE_ERROR("ERROR! fine_get_initial_cxp..invalid line_idx_x_y %d", line_idx_x_y);
-                        break;
-                    }
-                }
-                else {
-                    TRACE_ERROR("ERROR! fine_get_initial_cxp..invalid cxpCntX %d", cxpCntX);
-                    break;
-                }
-            }
-        } //for (line_idx_y = 0; line_idx_y < BS_initial_line_a_y_cnt; line_idx_y++)
-        initial_line_x[line_idx_x].cxpCntMax = (uint8_t)cxpCntX;
-    } //for (line_idx_x = 0; line_idx_x < BS_initial_line_a_x_cnt; line_idx_x++)
-
-    //init BS_initial_line_a_y[]
-    for (line_idx_y = 0; line_idx_y < line_idx_x_y; line_idx_y++)
-    {
-        initial_line_y[line_idx_y].cxpCntMax = 0; //init
-        initial_line_y[line_idx_y].cxLineIdx = UINT8_MAX; //init
-        initial_line_y[line_idx_y].cxGrpIdx = UINT8_MAX; //init
-        initial_line_y[line_idx_y].sortLen_a[0] = 0; //init //nsmoon@201019-bugfix
-    }
-    return line_idx_x_y;
-}
-#endif
-
-static int fine_get_initial_tp(int fineLoop)
-{
-    int ret;
-    uint16_t *remLineX = &BS_remained_x[0];
-    int remLineCntX = BS_remained_x_cnt;
-    uint16_t *remLineY = &BS_remained_y[0];
-    int remLineCntY = BS_remained_y_cnt;
-    int line_idx_x_y = 0;
     IS_DEBUG_FLAG{
         TRACE_NOP;
     }
@@ -13454,7 +13156,7 @@ static int fine_get_initial_tp(int fineLoop)
         return 0;
     }
     IS_DEBUG_FLAG {
-        TRACE("BS_initial_line_a_x_cnt=%d, %d", BS_initial_line_a_x_cnt, BS_initial_line_a_y_cnt);
+    TRACE("BS_initial_line_a_x_cnt=%d, %d", BS_initial_line_a_x_cnt, BS_initial_line_a_y_cnt);
     };
 
 #ifdef FINE_INITIAL_LINE_NEW //nsmoon@211125
@@ -13463,47 +13165,100 @@ static int fine_get_initial_tp(int fineLoop)
     for (i = 0; i < repCnt; i++) {
         if (smallAxis == ENUM_VER_Y) {
             BS_fine_get_initial_ep5A(ENUM_VER_Y, remLineY, &remLineCntY);
-                if (BS_initial_line_a_x_cnt <= BS_initial_line_a_y_cnt) {
-                    BS_initial_line_a_y_cnt = BS_initial_line_a_x_cnt;
-                    break;
-                }
+            if (BS_initial_line_a_x_cnt <= BS_initial_line_a_y_cnt) {
+                BS_initial_line_a_y_cnt = BS_initial_line_a_x_cnt;
+                break;
             }
+        }
         else if (smallAxis == ENUM_HOR_X) {
             BS_fine_get_initial_ep5A(ENUM_HOR_X, remLineX, &remLineCntX);
-                if (BS_initial_line_a_x_cnt >= BS_initial_line_a_y_cnt) {
-                    BS_initial_line_a_x_cnt = BS_initial_line_a_y_cnt;
+            if (BS_initial_line_a_x_cnt >= BS_initial_line_a_y_cnt) {
+                BS_initial_line_a_x_cnt = BS_initial_line_a_y_cnt;
+                break;
+        }
+        }
+    }
+#else
+    BS_fine_get_initial_ep5_remained(ENUM_HOR_X, remLineX, &remLineCntX); //nsmoon@220126
+    BS_fine_get_initial_ep5_remained(ENUM_VER_Y, remLineY, &remLineCntY); //nsmoon@220126
+#endif
+#ifdef FINE_INITIAL_LINE_CENT //nsmoon@230418
+    BS_fine_get_initial_ep5_cent();
+#endif
+    IS_DEBUG_FLAG {
+    TRACE("=>BS_initial_line_a_x_cnt=%d, %d", BS_initial_line_a_x_cnt, BS_initial_line_a_y_cnt);
+    }
+
+    line_idx_x_y = 0;
+    for (line_idx_x = 0; line_idx_x < BS_initial_line_a_x_cnt; line_idx_x++)
+    {
+        pdX = initial_line_x[line_idx_x].line.pd;
+        ledX = initial_line_x[line_idx_x].line.led;
+        p0.x = ledXpos[ledX];
+        p0.y = BS_sensor_zero_y;
+        p1.x = pdXpos[pdX];
+        p1.y = BS_sensor_end_y;
+#if 1 //def DEBUG_EP_TEST //(DEBUG_fine_get_inst > 0) //nsmoon@210216
+        //if (fineLoop >= FINE_LOOP_XY_ST && fineLoop <= FINE_LOOP_XY_ED)
+        {
+        DEBUG_SHOW_LINE_POS(&p0, &p1, line_idx_x);
+        }
+#endif
+        int cxpCntX = 0;
+        initial_line_x[line_idx_x].cxpCntMax = 0; //init
+        for (line_idx_y = 0; line_idx_y < BS_initial_line_a_y_cnt; line_idx_y++)
+        {
+            pdY = initial_line_y[line_idx_y].line.pd;
+            ledY = initial_line_y[line_idx_y].line.led;
+            p2.y = ledYpos[ledY];
+            p2.x = BS_sensor_end_x;
+            p3.y = pdYpos[pdY];
+            p3.x = BS_sensor_zero_x;
+#if 1 //def DEBUG_EP_TEST //(DEBUG_fine_get_inst > 0) //nsmoon@210216
+            //if (fineLoop >= FINE_LOOP_XY_ST && fineLoop <= FINE_LOOP_XY_ED)
+            {
+            DEBUG_SHOW_LINE_POS(&p2, &p3, line_idx_y);
+            }
+#endif
+            if (BS_line_intersection(&p0, &p1, &p2, &p3, &pR)) {
+                if (cxpCntX < MAX_FINE_INITIAL_CXP_PER_LINE) {
+                    if (line_idx_x_y < MAX_INITIAL_LINE_FINE_XY) { //nsmoon@230412 MAX_INITIAL_LINE_FINE_Y=>MAX_INITIAL_LINE_FINE_XY
+                        IS_DEBUG_FLAG{ TRACE_BCF5("cxpCent1,'%d-%d,%d,%0.2f %0.2f,%d-%d,%d-%d",
+                                                   line_idx_x, line_idx_x_y, cxpCntX, pR.x, pR.y, pdX, ledX, pdY, ledY); };
+                        //if (BG_touch_count == 0 && fine_is_closed_initial_tp_cent(cxpCntX, &pR)) //nsmoon@200924, not-use
+                        {
+                            initial_line_x[line_idx_x].cxpCent[cxpCntX] = pR;
+                            initial_line_x[line_idx_x].cxOppLine[cxpCntX] = (uint8_t)line_idx_x_y++;
+                            initial_line_x[line_idx_x].cxTcIdx[cxpCntX] = UINT8_MAX; //init
+                            initial_line_x[line_idx_x].sortLen_a[cxpCntX] = 0; //init
+                            initial_line_x[line_idx_x].score[cxpCntX] = 0; //init
+                            initial_line_x[line_idx_x].score2[cxpCntX] = 0; //init
+                            cxpCntX++;
+                        }
+                    }
+                    else {
+                        TRACE_ERROR("ERROR! fine_get_initial_tp..invalid line_idx_x_y %d", line_idx_x_y);
+                        break;
+                    }
+                }
+                else {
+                    TRACE_ERROR("ERROR! fine_get_initial_tp..invalid cxpCntX %d", cxpCntX);
                     break;
                 }
             }
-        }
-#else
-    fine_get_initial_ep5_remained(ENUM_HOR_X, remLineX, &remLineCntX); //nsmoon@220126
-    fine_get_initial_ep5_remained(ENUM_VER_Y, remLineY, &remLineCntY); //nsmoon@220126
-#endif
-    IS_DEBUG_FLAG {
-        TRACE("=>BS_initial_line_a_x_cnt=%d, %d", BS_initial_line_a_x_cnt, BS_initial_line_a_y_cnt);
+        } //for (line_idx_y = 0; line_idx_y < BS_initial_line_a_y_cnt; line_idx_y++)
+        initial_line_x[line_idx_x].cxpCntMax = (uint8_t)cxpCntX;
+    } //for (line_idx_x = 0; line_idx_x < BS_initial_line_a_x_cnt; line_idx_x++)
+
+    //init BS_initial_line_a_y[]
+    for (line_idx_y = 0; line_idx_y < line_idx_x_y; line_idx_y++)
+    {
+        initial_line_y[line_idx_y].cxpCntMax = 0; //init
+        initial_line_y[line_idx_y].cxLineIdx = UINT8_MAX; //init
+        initial_line_y[line_idx_y].cxGrpIdx = UINT8_MAX; //init
+        initial_line_y[line_idx_y].sortLen_a[0] = 0; //init //nsmoon@201019-bugfix
     }
 
-    line_idx_x_y = fine_get_initial_cxp();
-
-#ifdef FINE_INITIAL_LINE_ADD //nsmoon@230418
-    if (BS_initial_line_a_x_cnt != BS_initial_line_a_y_cnt) {
-        int initial_line_a_x_end = BS_initial_line_a_x_cnt;
-        int initial_line_a_y_end = BS_initial_line_a_y_cnt;
-        fine_get_initial_ep5_cent();
-
-        if (initial_line_a_x_end < BS_initial_line_a_x_cnt) {
-            line_idx_x_y = fine_add_initial_cxp(ENUM_HOR_X, initial_line_a_x_end, initial_line_a_y_end, line_idx_x_y);
-        }
-        if (initial_line_a_y_end < BS_initial_line_a_y_cnt) {
-            line_idx_x_y = fine_add_initial_cxp(ENUM_VER_Y, initial_line_a_x_end, initial_line_a_y_end, line_idx_x_y);
-        }
-
-        IS_DEBUG_FLAG {
-            TRACE("==>BS_initial_line_a_x_cnt=%d, %d %d", BS_initial_line_a_x_cnt, BS_initial_line_a_y_cnt, line_idx_x_y);
-        }
-    }
-#endif
     return line_idx_x_y; //no-error
 }
 
@@ -13519,228 +13274,6 @@ static int chk_touch_info_cnt(int touch_info_fine_cnt)
     return cnt;
 }
 
-#if 1 //nsmoon@230424
-static void fine_get_one_touch_info(int touch_info_fine_cnt)
-{
-    int i, j;
-    uint8_t lineIdxX0_i, lineIdxX0_j;
-    touch_info_fine_t *touch_info_fine = &BS_touch_info_fine[0];
-    for (i = 0; i < touch_info_fine_cnt; i++) {
-        if (touch_info_fine[i].fineStat == 1) continue;
-        touch_info_fine[i].tiCnt = 0; //init
-    }
-#if 0 //for test
-    if (BS_initial_line_a_x_cnt != BS_initial_line_a_y_cnt) {
-        return; //not-check tiCnt
-    }
-#endif
-
-    for (i = 0; i < touch_info_fine_cnt; i++) {
-        if (touch_info_fine[i].fineStat == 1) continue;
-        if (touch_info_fine[i].tiCnt > 0) continue;
-
-        lineIdxX0_i = touch_info_fine[i].lineIdxX0;
-        touch_info_fine[i].tiCnt = 1;
-
-        for (j = i+1; j < touch_info_fine_cnt; j++) {
-            if (touch_info_fine[j].fineStat == 1) continue;
-            lineIdxX0_j = touch_info_fine[j].lineIdxX0;
-            if (lineIdxX0_i == lineIdxX0_j) {
-                touch_info_fine[i].tiCnt++;
-            }
-        }
-        for (j = i+1; j < touch_info_fine_cnt; j++) {
-            if (touch_info_fine[j].fineStat == 1) continue;
-            lineIdxX0_j = touch_info_fine[j].lineIdxX0;
-            if (lineIdxX0_i == lineIdxX0_j) {
-                touch_info_fine[j].tiCnt = touch_info_fine[i].tiCnt;
-            }
-        }
-    }
-
-#if (DEBUG_BG_clipping_fine5 > 0)
-    IS_DEBUG_FLAG {
-        for (i = 0; i < touch_info_fine_cnt; i++) {
-            if (touch_info_fine[i].fineStat == 1) continue;
-            uint8_t lineIdxX0 = touch_info_fine[i].lineIdxX0;
-            uint8_t lineIdxXY = touch_info_fine[i].lineIdxXY;
-            uint8_t tiCnt = touch_info_fine[i].tiCnt;
-            TRACE_BCF5("  tiCnt=%d %d-%d %d", i, (int)lineIdxX0, (int)lineIdxXY, (int)tiCnt);
-        };
-    }
-#endif
-}
-
-static void fine_decrease_ti_cnt(int touch_info_fine_cnt, int touch_info_fine_idx)
-{
-    int i;
-    touch_info_fine_t *touch_info_fine = &BS_touch_info_fine[0];
-    uint8_t lineIdxX0, lineIdxX0_in = touch_info_fine[touch_info_fine_idx].lineIdxX0;
-
-    for (i = 0; i < touch_info_fine_cnt; i++)
-    {
-        if (touch_info_fine[i].fineStat == 1) continue;
-        lineIdxX0 = touch_info_fine[i].lineIdxX0;
-        if (lineIdxX0_in == lineIdxX0) {
-            if (touch_info_fine[i].tiCnt > 1) {
-                touch_info_fine[i].tiCnt--;
-            }
-        }
-    }
-}
-#endif
-
-#ifdef FINE_INITIAL_LINE_ADD //nsmoon@230419
-#define FINE_GHOST_MODE_X    0 //tp on same x-line
-#define FINE_GHOST_MODE_Y    1 //tp on same y-line
-#define FINE_GHOST_MODE_XY   2 //near tp
-#define FINE_GHOST_MODE_X2   5 //tp on same x-line //not-used
-#define FINE_GHOST_MODE_END  FINE_GHOST_MODE_XY //end
-#define FINE_REMOVE_GHOST_DENSE_DIFF_X    0.4f //0.6f
-#define FINE_REMOVE_GHOST_DENSE_DIFF_Y    0.4f //0.6f
-#define FINE_REMOVE_GHOST_DENSE_DIFF_X2   0.1f
-static int fine_remove_ghost(int touch_info_fine_cnt, int mode)
-{
-    int i, j;
-    vec_t cent_i, cent_j;
-    int diffSum_i, diffSum_j;
-    int maxCnt_i, maxCnt_j;
-    int gridWidth_i, gridWidth_j;
-    float distX, distY;
-    touch_info_fine_t *touch_info_fine = &BS_touch_info_fine[0];
-    float near_dist_x, near_dist_y;
-    float densDiffSum_i, densDiffSum_j;
-    float densDiffSum, densDiffSumMargin = 0;
-    uint8_t lineIdxX0_i, lineIdxX0_j;
-    uint8_t lineIdxY0_i, lineIdxY0_j;
-    int tCnt = chk_touch_info_cnt(touch_info_fine_cnt);
-
-    TRACE_BCF5("fine_remove_ghost..%d %d/%d", mode, tCnt, touch_info_fine_cnt);
-
-    if (mode == FINE_GHOST_MODE_X) {
-        near_dist_x = FINE_GHOST_NEAR_DIST;
-        near_dist_y = BS_aarea_end_y;
-        densDiffSumMargin = FINE_REMOVE_GHOST_DENSE_DIFF_X;
-    }
-    else if (mode == FINE_GHOST_MODE_Y) {
-        near_dist_y = FINE_GHOST_NEAR_DIST;
-        near_dist_x = BS_aarea_end_x;
-        densDiffSumMargin = FINE_REMOVE_GHOST_DENSE_DIFF_Y;
-    }
-    else if (mode == FINE_GHOST_MODE_X2) {
-        near_dist_x = FINE_GHOST_NEAR_DIST;
-        near_dist_y = BS_aarea_end_y;
-        densDiffSumMargin = FINE_REMOVE_GHOST_DENSE_DIFF_X2;
-    }
-    else {
-        near_dist_x = FINE_GHOST_NEAR_DIST; //near_dist_sq
-        near_dist_y = FINE_GHOST_NEAR_DIST;
-        densDiffSumMargin = EPSILON;
-    }
-
-    for (i = 0; i < touch_info_fine_cnt; i++)
-    {
-        if (touch_info_fine[i].fineStat == 1) continue;
-        cent_i = touch_info_fine[i].centerPos;
-        diffSum_i = touch_info_fine[i].diffSum;
-        maxCnt_i = touch_info_fine[i].maxCnt;
-        gridWidth_i = touch_info_fine[i].gridWidth;
-        lineIdxX0_i = touch_info_fine[i].lineIdxX0;
-        lineIdxY0_i = touch_info_fine[i].lineIdxY0;
-#if (DEBUG_BG_clipping_fine5 > 0)
-    IS_DEBUG_FLAG {
-        int lineIdxXY_i = touch_info_fine[i].lineIdxXY;
-        //int lineIdxX_i = touch_info_fine[i].lineIdxX;
-        TRACE_BCF5("  lineIdxX0_i=(%d-%d/%d)(%d %d %d)", lineIdxX0_i, lineIdxXY_i, lineIdxY0_i, diffSum_i, maxCnt_i, gridWidth_i);
-    };
-#endif
-
-        for (j = (i+1); j < touch_info_fine_cnt; j++) //nsmoon@230426 0=>(i+1)
-        {
-            if (i == j) continue;
-            if (touch_info_fine[j].fineStat == 1) continue;
-            lineIdxX0_j = touch_info_fine[j].lineIdxX0;
-            if ( (mode == FINE_GHOST_MODE_X || mode == FINE_GHOST_MODE_X2) && 
-                 (lineIdxX0_i != lineIdxX0_j) ) {
-                continue;
-            }
-            lineIdxY0_j = touch_info_fine[j].lineIdxY0;
-            if (mode == FINE_GHOST_MODE_Y && lineIdxY0_i != lineIdxY0_j) {
-                continue;
-            }
-            cent_j = touch_info_fine[j].centerPos;
-            diffSum_j = touch_info_fine[j].diffSum;
-            maxCnt_j = touch_info_fine[j].maxCnt;
-            gridWidth_j = touch_info_fine[j].gridWidth;
-            distX = GET_ABS(cent_i.x - cent_j.x);
-            distY = GET_ABS(cent_i.y - cent_j.y);
-
-#if (DEBUG_BG_clipping_fine5 > 0)
-            IS_DEBUG_FLAG {
-                int lineIdxXY_j = touch_info_fine[j].lineIdxXY;
-                //int lineIdxX_j = touch_info_fine[j].lineIdxX;
-                TRACE_BCF5("    lineIdxX0_j=(%d-%d/%d)(%d %d %d)(%0.2f %0.2f)", lineIdxX0_j, lineIdxXY_j, lineIdxY0_j,
-                           diffSum_j, maxCnt_j, gridWidth_j, distX, distY);
-            };
-#endif
-            if ( ((mode == FINE_GHOST_MODE_X || mode == FINE_GHOST_MODE_X2)) || (mode == FINE_GHOST_MODE_Y) ||
-                 (mode == FINE_GHOST_MODE_XY && distX < near_dist_x && distY < near_dist_y) )
-            {
-                densDiffSum_i = (gridWidth_i) ? ((float)diffSum_i / gridWidth_i) : (diffSum_i * 10);
-                densDiffSum_j = (gridWidth_j) ? ((float)diffSum_j / gridWidth_j) : (diffSum_j * 10);
-                densDiffSum = GET_ABS(densDiffSum_i - densDiffSum_j);
-                if (densDiffSum < densDiffSumMargin) {
-                    densDiffSum_i = densDiffSum_j;
-                }
-#if (DEBUG_BG_clipping_fine5 > 0)
-                IS_DEBUG_FLAG {
-                    if (mode == FINE_GHOST_MODE_XY) {
-                        TRACE_NOP;
-                    }
-                    TRACE_BCF5("    ~~distX,distY:%0.2f %0.2f (%0.2f,%0.2f)(%d/%d)(%d/%d)(%d/%d)", distX, distY,
-                                    densDiffSum_i, densDiffSum_j, diffSum_i, diffSum_j, maxCnt_i, maxCnt_j, gridWidth_i, gridWidth_j);
-                };
-#endif
-                if ( (diffSum_i != UINT8_MAX && diffSum_j == UINT8_MAX) ||
-                     (densDiffSum_i < densDiffSum_j && diffSum_i != UINT8_MAX) ||
-                     (mode == FINE_GHOST_MODE_XY && (densDiffSum_i == densDiffSum_j && maxCnt_i >= maxCnt_j)) )
-                {
-                    if (touch_info_fine[j].tiCnt > 1) //nsmoon@230424
-                {
-                        fine_decrease_ti_cnt(touch_info_fine_cnt, j); //nsmoon@230424
-                        IS_DEBUG_FLAG {TRACE_BCF5("    =>ghost~j~%d", touch_info_fine[j].tiCnt);};
-                    touch_info_fine[j].fineStat = 1; //ghost
-                    if ((--tCnt) < 3) {
-                        return 1;
-                    }
-                }
-                    else if (mode == FINE_GHOST_MODE_XY) { //nsmoon@230424
-                        if (densDiffSum < FINE_REMOVE_GHOST_DENSE_DIFF_X) {
-                            densDiffSum_i = densDiffSum_j;
-                        }
-                    }
-                }
-                if ( (diffSum_j != UINT8_MAX && diffSum_i == UINT8_MAX) ||
-                          (densDiffSum_j < densDiffSum_i && diffSum_j != UINT8_MAX) ||
-                          (mode == FINE_GHOST_MODE_XY && (densDiffSum_j == densDiffSum_i && maxCnt_j >= maxCnt_i)) )
-                {
-                    if (touch_info_fine[i].tiCnt > 1) //nsmoon@230424
-                {
-                        fine_decrease_ti_cnt(touch_info_fine_cnt, i); //nsmoon@230424
-                        IS_DEBUG_FLAG {TRACE_BCF5("    =>ghost~i~%d", touch_info_fine[i].tiCnt);};
-                    touch_info_fine[i].fineStat = 1; //ghost
-                    if ((--tCnt) < 3) {
-                        return 1;
-                    }
-                    }
-                }
-            }
-        } //for (j = 0; j < touch_info_fine_cnt; j++)
-    } //for (i = 0; i < touch_info_fine_cnt; i++)
-    return 0;
-}
-#else
-#define FINE_GHOST_MODE_END  1 //end
 static int fine_remove_ghost(int touch_info_fine_cnt, int mode)
 {
     int i, j;
@@ -13795,7 +13328,11 @@ static int fine_remove_ghost(int touch_info_fine_cnt, int mode)
                 near_dist_x = FINE_GHOST_NEAR_DIST_EDGE_X;
             }
 #if 1 //nsmoon@211021 //4pen_1020B.dlt #117
+#if defined(N75_TEST) || defined(N65_TEST) //nsmoon@230418
+            if (mode == 1 && lineIdxX0_i == lineIdxX0_j) {
+#else
             else if (mode == 1 && lineIdxX0_i == lineIdxX0_j) {
+#endif
                 near_dist_y = FINE_GHOST_NEAR_DIST_SAME_AXIS;
             }
 #endif
@@ -13841,78 +13378,27 @@ static int fine_remove_ghost(int touch_info_fine_cnt, int mode)
     } //for (i = 0; i < touch_info_fine_cnt; i++)
     return 0;
 }
-#endif
 
 #if 1 //nsmoon@230412
-static int fine_get_float_min_max_init(float *max, int *idxMax, int maxCnt, float initVal)
-{
-    int i;
-    for (i = 0; i < maxCnt; i++) {
-        max[i] = initVal;
-        idxMax[i] = -1;
-    }
-    return 0;
-}
-
-static int fine_get_float_min_max(float *max, int *max2, int *idxMax, int maxCnt, int idx, float val, int val2, int idxVal, int minMax)
-{
-    //minMax(1:max, -1:min)
-    int sign = (minMax > 0) ? 1 : -1;
-    int matched;
-    if (idx < maxCnt) {
-        if (GET_ABS(val - max[idx]) < EPSILON) {
-            matched = (val2 < max2[idx]);
-        }
-        else {
-            matched = ((val * sign) > (max[idx] * sign));
-        }
-        if (matched) {
-            //TRACE("idx=%d %d", idx, val);
-            fine_get_float_min_max(max, max2, idxMax, maxCnt, idx + 1, max[idx], val2, idxMax[idx], minMax);
-            if (idx < maxCnt) {
-                max[idx] = val;
-                idxMax[idx] = idxVal;
-            }
-            else {
-                TRACE_ERROR("ERROR! BS_get_float_min_max..invalid idx %d %d", idx, maxCnt);
-            }
-            return 1; //found
-        }
-        else {
-            if (fine_get_float_min_max(max, max2, idxMax, maxCnt, idx + 1, val, val2, idxVal, minMax)) {
-                return 1; //found
-            }
-        }
-    }
-    return 0; //no-found
-}
-
-#ifdef DEBUG_FUNCTION_ENABLE_ALL
-#define DEBUG_fine_remove_ghost_over_max    1
-#endif
 static int fine_remove_ghost_over_max(int touch_info_fine_cnt)
 {
     int i;
-    int diffSum, gridWidth, maxCnt;
+    int diffSum, gridWidth; //maxCnt
     float densDiffSum;
     touch_info_fine_t *touch_info_fine = &BS_touch_info_fine[0];
     int tCnt = chk_touch_info_cnt(touch_info_fine_cnt);
     float densDiffSumMax[MAX_TOUCH_LIMIT_FINE];
     int iMax[MAX_TOUCH_LIMIT_FINE];
-    int aVal2[MAX_TOUCH_LIMIT_FINE];
-#if (DEBUG_fine_remove_ghost_over_max > 0)
-    IS_DEBUG_FLAG{TRACE("fine_remove_ghost_over_max.. %d %d", touch_info_fine_cnt, tCnt);};
-#endif
 
-    fine_get_float_min_max_init(&densDiffSumMax[0], &iMax[0], MAX_TOUCH_LIMIT_FINE, 0);
+    TRACE_BCF5("fine_remove_ghostall.. %d %d %d", touch_info_fine_cnt, tCnt);
+
+    BS_get_float_min_max_init(&densDiffSumMax[0], &iMax[0], MAX_TOUCH_LIMIT_FINE, 1); //1:max
 
     for (i = 0; i < touch_info_fine_cnt; i++)
     {
         if (touch_info_fine[i].fineStat == 1) continue;
-        if (touch_info_fine[i].tiCnt == 1) continue; //nsmoon@230425
-
         diffSum = touch_info_fine[i].diffSum;
-        maxCnt = touch_info_fine[i].maxCnt;
+        //maxCnt = touch_info_fine[i].maxCnt;
         gridWidth = touch_info_fine[i].gridWidth;
         if (diffSum == UINT8_MAX || gridWidth == 0) {
             densDiffSum = UINT8_MAX;
@@ -13920,22 +13406,13 @@ static int fine_remove_ghost_over_max(int touch_info_fine_cnt)
         else {
             densDiffSum = (float)diffSum / gridWidth;
         }
-#if (DEBUG_fine_remove_ghost_over_max > 0)
-        IS_DEBUG_FLAG{TRACE("densDiffSum=%f %d %d %d %d", densDiffSum, i, diffSum, gridWidth, maxCnt);};
-#endif
-        fine_get_float_min_max(&densDiffSumMax[0], &aVal2[0], &iMax[0], MAX_TOUCH_LIMIT_FINE, 0, densDiffSum, maxCnt, i, 1); //1:max
+        TRACE("densDiffSum=%f %d %d %d", densDiffSum, i, diffSum, gridWidth);
+        BS_get_float_min_max(&densDiffSumMax[0], &iMax[0], MAX_TOUCH_LIMIT_FINE, 0, densDiffSum, i, 1); //1:max
     }
-
     for (i = 0 ; i < (tCnt-MAX_TOUCH_LIMIT_FINE); i++) {
+        TRACE("iMax=%d %f", iMax[i], densDiffSumMax[i]);
         if (i >= MAX_TOUCH_LIMIT_FINE) break;
         if (iMax[i] < 0) break;
-#if (DEBUG_fine_remove_ghost_over_max > 0)
-        IS_DEBUG_FLAG{
-            int lineIdxX0 = touch_info_fine[iMax[i]].lineIdxX0;
-            int lineIdxXY = touch_info_fine[iMax[i]].lineIdxXY;
-            TRACE("iMax=%d %d-%d %0.3f", iMax[i], lineIdxX0, lineIdxXY, densDiffSumMax[i]);
-        };
-#endif
         touch_info_fine[iMax[i]].fineStat = 1; //ghost
     }
     return 0;
@@ -14004,9 +13481,6 @@ static int fine_cal_coordinates5(int fineLoop)
         cxpCntMax = initial_line_x[line_idx_x].cxpCntMax;
         for (cxpIdx = 0; cxpIdx < cxpCntMax; cxpIdx++)
         {
-#ifdef FINE_INITIAL_LINE_ADD //nsmoon@230425
-            if ((int)initial_line_x[line_idx_x].cxpCent[cxpIdx].x == 0) continue;
-#endif
             int sortLenX = (int)initial_line_x[line_idx_x].sortLen_a[cxpIdx];
             int isEdgeAreaX = initial_line_x[line_idx_x].isEdgeArea[cxpIdx];
             IS_DEBUG_FLAG { TRACE_BCF5(" ********* cxpIdx=%d/%d %d/%d (%d %04x)", line_idx_x, BS_initial_line_a_x_cnt, cxpIdx, cxpCntMax, sortLenX, isEdgeAreaX); };
@@ -14131,7 +13605,6 @@ static int fine_cal_coordinates5(int fineLoop)
             if (touch_info_fine_cnt < MAX_TOUCH_INFO_FINE_SIZE) {
                 initial_line_x[line_idx_x].cxTcIdx[cxpIdx] = (uint8_t)touch_info_fine_cnt;
                 touch_info_fine[touch_info_fine_cnt].lineIdxX0 = (uint8_t)line_idx_x;
-                touch_info_fine[touch_info_fine_cnt].lineIdxY0 = (uint8_t)cxpIdx; //nsmoon@230419
                 touch_info_fine[touch_info_fine_cnt].lineX = initial_line_x2;
                 touch_info_fine[touch_info_fine_cnt].lineIdxX = (uint8_t)line_idx_x2;
                 touch_info_fine[touch_info_fine_cnt].grpIdxX = FINE_CXP_ORI;
@@ -14369,12 +13842,11 @@ static int fine_cal_coordinates5(int fineLoop)
     };
 #if 1 //nsmoon@200921
     if (chk_touch_info_cnt(touch_info_fine_cnt) > 2) {
-        fine_get_one_touch_info(touch_info_fine_cnt); //nsmoon@230425
-        for (i = 0; i <= FINE_GHOST_MODE_END; i++) { //nsmoon@230419
+        for (i = 0; i < 2; i++)
+        {
             if (fine_remove_ghost(touch_info_fine_cnt, i)) {
                 //break;
             }
-            fine_get_one_touch_info(touch_info_fine_cnt); //nsmoon@230425
         }
     }
 #endif
@@ -14545,7 +14017,7 @@ static int fine_cal_coordinates5(int fineLoop)
             if (fine_is_closed_tp_min_max(&touch_info_fine[i].mM, 0/*touchCntOrg*/, touchCnt))
 #endif
             {
-                IS_DEBUG_FLAG{ TRACE("closed~--%d %d", i, touchCnt); };
+            IS_DEBUG_FLAG{ TRACE("closed~--%d", i); };
             continue;
         }
 #endif

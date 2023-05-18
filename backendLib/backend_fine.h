@@ -45,8 +45,8 @@ extern "C" {
 #define FINE_CAL_WIDTH_INIT      0.6f //1.0f
 #define FINE_GRID_WIDTH_INIT     8    //6
 #elif defined(N65_TEST) //nsmoon@230411 for N65 //TestData_N65ve\4p_top_2.dlt #73/76/79
-#define FINE_CAL_WIDTH_INIT      0.6f //0.8f //0.6f
-#define FINE_GRID_WIDTH_INIT     8 //6 //8
+#define FINE_CAL_WIDTH_INIT      0.8f //0.6f
+#define FINE_GRID_WIDTH_INIT     6 //8
 #else
 #define FINE_CAL_WIDTH_INIT      0.6f  //0.6f // //0.5f
 #define FINE_GRID_WIDTH_INIT     8 //6 //5*CAL_WIDTH //nsmoon@211014a 6=>8
@@ -129,11 +129,7 @@ extern "C" {
 #else
 #define FINE_GHOST_SAME_AXIS            5.0f //10.0f //5.0f
 #define FINE_GHOST_NEAR_DIST            15.0f
-#if defined(N75_TEST) || defined(N65_TEST) //nsmoon@230419
-#define FINE_GHOST_NEAR_DIST_SAME_AXIS  150.0f //n65_4p_n65_4p_230412b.dlt #32 //40*3=120
-#else
 #define FINE_GHOST_NEAR_DIST_SAME_AXIS  20.0f //30.0f //nsmoon@211021 //nsmoon@211029 30.0f=>20.0f
-#endif
 #define FINE_GHOST_NEAR_DIST_Y          20.0f
 #define FINE_GHOST_NEAR_DIST_EDGE_X     20.0f //25.0f //40.0f //nsmoon@211029 25.0f=>20.0f
 //#define FINE_GHOST_NEAR_DIST_EDGE_Y     900.0f //170.0f //150.0f //40.0f
@@ -232,11 +228,7 @@ extern "C" {
 #define FINE_MAX_NEAR_LINE_DIST         6.0f //3.0f //nsmoon@190917a
 
 #define FINE_MAX_OVERLAP_TP_MINMAX_GAP  0.5f
-#if defined(N75_TEST) || defined(N65_TEST) //nsmoon@240426
-#define FINE_MAX_CLOSED_TP_MINMAX_GAP   15.0f //min-dist for 2-touch
-#else
 #define FINE_MAX_CLOSED_TP_MINMAX_GAP   10.0f //12.0f //15.0f, min/max, //nsmoon@0325 15=>12 //nsmoon@211028 12=>10
-#endif
 #if 1 //nsmoon@211102
 #define FINE_MAX_CLOSED_TP_1P_SPEED_GAP       25.0f
 #define FINE_MAX_CLOSED_TP_1P_SPEED_OPP_GAP   4.0f
@@ -438,8 +430,6 @@ typedef struct {
     pos_min_max_t mM2; //th10
     vec_t centerPos;
     uint8_t lineIdxX0;
-    uint8_t lineIdxY0; //nsmoon@230419
-    uint8_t tiCnt; //nsmoon@230424
 } touch_info_fine_t;
 
 #if 1 //nsmoon@211028
@@ -463,10 +453,6 @@ extern initial_line_a_t BS_initial_line_a_x[MAX_INITIAL_LINE_FINE_X];
 extern initial_line_a_t BS_initial_line_a_x2[MAX_INITIAL_LINE_FINE_X2];
 extern initial_line_a_t BS_initial_line_a_y[MAX_INITIAL_LINE_FINE_XY]; //nsmoon@230412 MAX_INITIAL_LINE_FINE_Y=>MAX_INITIAL_LINE_FINE_XY
 extern int BS_initial_line_a_x_cnt, BS_initial_line_a_x2_cnt, BS_initial_line_a_y_cnt; //BS_initial_line_a_x_cnt_real
-#if 1  //nsmoon@230425
-extern int BS_initial_line_a_x_slope, BS_initial_line_a_y_slope;
-extern vec_t BS_initial_cxp[MAX_INITIAL_LINE_FINE_XY];
-#endif
 
 extern touch_info_fine_t BS_touch_info_fine[MAX_TOUCH_INFO_FINE_SIZE];
 extern int BS_touch_info_fine_cnt;
