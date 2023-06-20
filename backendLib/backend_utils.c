@@ -1184,15 +1184,15 @@ int BS_calMinMaxSen(axis_t axis, int led, int pd, pos_min_max_t *mM_in, pos_min_
 		//y-center
 		p2.y = (mM_in->minY + mM_in->maxY) * 0.5f;
 		p3.y = p2.y;
-		p2.x = mM_in->minX - CAL_MIN_MAX_TOL;
-		p3.x = mM_in->maxX + CAL_MIN_MAX_TOL;
+        p2.x = mM_in->minX - CAL_MIN_MAX_TOL - EPSILON; //nsmoon@230522 -EPSILON
+        p3.x = mM_in->maxX + CAL_MIN_MAX_TOL + EPSILON; //nsmoon@230522 +EPSILON
 	}
 	else {
 		//x-center
 		p2.x = (mM_in->minX + mM_in->maxX) * 0.5f;
 		p3.x = p2.x;
-		p2.y = mM_in->minY - CAL_MIN_MAX_TOL;
-		p3.y = mM_in->maxY + CAL_MIN_MAX_TOL;
+        p2.y = mM_in->minY - CAL_MIN_MAX_TOL - EPSILON; //nsmoon@230522 -EPSILON
+        p3.y = mM_in->maxY + CAL_MIN_MAX_TOL + EPSILON; //nsmoon@230522 +EPSILON
 	}
 #if (DEBUG_BS_calMinMaxSen == 1)
     //DEBUG_SHOW_LINE_POS(&p0, &p1, 1);
@@ -1203,18 +1203,29 @@ int BS_calMinMaxSen(axis_t axis, int led, int pd, pos_min_max_t *mM_in, pos_min_
 		DEBUG_SHOW_POS(&pR, 0.2f, 0.2f, 1);
 #endif
 		if (axis == ENUM_HOR_X) {
+#if (DEBUG_BS_calMinMaxSen == 1)
+            IS_DEBUG_FLAG{ TRACE("   pR= %0.3f (%0.3f %0.3f)", pR.x, mM_out->minX, mM_out->maxX); };
+#endif
             if (pR.x > mM_in->minX && pR.x < mM_in->maxX) {
                 mM_out->minX = GET_MIN(pR.x, mM_out->minX);
                 mM_out->maxX = GET_MAX(pR.x, mM_out->maxX);
             }
 		}
 		else {
+#if (DEBUG_BS_calMinMaxSen == 1)
+            IS_DEBUG_FLAG{ TRACE("   pR= %0.3f (%0.3f %0.3f)", pR.y, mM_out->minY, mM_out->maxY); };
+#endif
             if (pR.y > mM_in->minY && pR.y < mM_in->maxY) {
                 mM_out->minY = GET_MIN(pR.y, mM_out->minY);
                 mM_out->maxY = GET_MAX(pR.y, mM_out->maxY);
             }
 		}
 	}
+#if (DEBUG_BS_calMinMaxSen == 1)
+    else {
+        IS_DEBUG_FLAG{ TRACE("   pR= none"); };
+    }
+#endif
 	return 0; //no-error
 }
 
@@ -1233,7 +1244,7 @@ int BS_get_slope_sign(int led0, int pd0)
     return slopeSign;
 }
 
-#if 1 //nsmoon@230412
+#ifndef FINE_REMOVE_GHOST_NEW //nsmoon@230412
 #define DEBUG_BS_get_int_min_max    0
 #if (DEBUG_BS_get_int_min_max > 0)
 #define TRACE_GIMM(...)    TRACE(__VA_ARGS__)

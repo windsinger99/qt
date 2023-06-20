@@ -939,8 +939,8 @@ int BS_packEdgePatternMulti_ind(bd_type_t bd)
 		BS_senTblLenY2cnt = 0;
 	}
 #endif
-    TRACE_EPMI("epa in BS_packEdgePatternMulti_ind(axis): %x (%d) ", epa, axis);
-	TRACE_EPMI("inBuf in BS_packEdgePatternMulti_ind(axis): %x (%d)", inBuf, axis);
+    IS_DEBUG_FLAG {TRACE_EPMI("epa in BS_packEdgePatternMulti_ind(axis): %x (%d) ", epa, axis);};
+    IS_DEBUG_FLAG {TRACE_EPMI("inBuf in BS_packEdgePatternMulti_ind(axis): %x (%d)", inBuf, axis);};
 
 #ifdef MULTI_SEN_CNT_EVEN_SKIP_ENABLE_2 //nsmoon@200330
     BS_multi_even_skip_en = (senCnt > MAX_MULTI_SEN_CNT_SKIP) ? 1 : 0;
@@ -991,11 +991,11 @@ int BS_packEdgePatternMulti_ind(bd_type_t bd)
             }
                 led = byteIdx * 8 + bitIdx;
                 if (sensor == ENUM_PD) {
-				TRACE_EPMI(".1.pd,led,lineBufIdx,ledMask: (%d/%d),%d,%d,%d,%x,%x", axis, sensor, pd, led, inBufIdx, ledMask, inBuf[inBufIdx]);
+                    IS_DEBUG_FLAG {TRACE_EPMI(".1.pd,led,lineBufIdx,ledMask: (%d/%d),%d,%d,%d,%x,%x", axis, sensor, pd, led, inBufIdx, ledMask, inBuf[inBufIdx]);};
                 addEpaValueMulti(axis, sensor, &epa[pd], led, pd);
 					}
                 else {
-                    TRACE_EPMI(".2.pd,led,lineBufIdx,ledMask: (%d/%d),%d,%d,%d,%x,%x", axis, sensor, led, pd, inBufIdx, ledMask, inBuf[inBufIdx]);
+                    IS_DEBUG_FLAG {TRACE_EPMI(".2.pd,led,lineBufIdx,ledMask: (%d/%d),%d,%d,%d,%x,%x", axis, sensor, led, pd, inBufIdx, ledMask, inBuf[inBufIdx]);};
                     addEpaValueMulti(axis, sensor, &epa[pd], pd, led);
 				}
                 cnt++;
@@ -1004,7 +1004,7 @@ int BS_packEdgePatternMulti_ind(bd_type_t bd)
                 if (adjLed2 >= 0) {
                     int slopeVal = GET_ABS(adjLed2 - pd);
                     if (slopeVal <= maxSlopeVal) {
-                        TRACE_EPMI("@@, %d, %d, %d", sensor, adjLed2, pd);
+                        IS_DEBUG_FLAG {TRACE_EPMI("@@, %d, %d, %d", sensor, adjLed2, pd);};
                         if (sensor == ENUM_PD) {
 						BS_set_line_buffer(axis, adjLed2, pd); //nsmoon@190926, DEAD_CELL_TBL
                         addEpaValueMulti(axis, sensor, &epa[pd], adjLed2, pd);
@@ -6553,7 +6553,7 @@ static int multi_get_clipping_info(axis_t axis, bd_type_t bdX, bd_type_t bdY, in
 	clipping_info->polyIdx = polyIdx;
 
 #ifdef MULTI_CLIPPING_RANGE //nsmoon@190702
-    if (initial_polygon > 0) {
+    if ((int)initial_polygon > 0) {
         ep_min_max_t minMaxEp;
         pos_min_max_t minMaxPos;
         int minSenlim, maxSenlim;

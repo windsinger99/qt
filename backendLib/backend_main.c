@@ -201,6 +201,8 @@ ATTR_BACKEND_RAM2 int8_t BG_debug_multi_fine[ALLOWABLE_TOUCH_BE];
 ATTR_BACKEND_RAM2 pos_minMax2_t BG_debug_touch_area_minmax[ALLOWABLE_TOUCH_BE];
 #endif
 
+ATTR_BACKEND_RAM2 int BG_preTouchCnt;
+
 //------------------------------------------------------------------
 int BS_set_unset2_used_led_pd(axis_t axis, int led, int pd, int mode)
 {
@@ -332,6 +334,7 @@ int BS_get_remained_line(axis_t axis, int multiLoopCnt)
         }
 #endif
 		if ((lineUsed2[lineUsedIdx] & lineUsedMask) == 0x00) {
+            //IS_DEBUG_FLAG{TRACE("lineUsedIdx=%d %d %d %d (%d)", lineUsedIdx, pd, led, inBufLen, axis);};
 			continue;
 		}
 
@@ -700,6 +703,7 @@ int BS_is_set_threshold(axis_t axis, int pd, int ofstIdx)
 	bitIdx = ofstIdx % 8;
 	idx = ((pd * ofst_byte) + byteIdx);
 	ret = threshold[idx] & (uint8_t)(0x1 << bitIdx);
+    //IS_DEBUG_FLAG{TRACE("  ret=%d %d %d %d (%d) ", (int)ret, idx, byteIdx, bitIdx, axis);};
 
 #if 0 //for test
 	int i, j, tmpIdx, found;
@@ -1369,6 +1373,10 @@ int BG_init_backend(
     maxProcessCnt = 0;
     maxSubjCnt = 0;
 	maxClipIdx = 0;
+#endif
+
+#ifdef CHECK_AS_PEN4
+    BG_preTouchCnt = 0;
 #endif
 
     DEBUG_GET_TIME_DIFF_INIT();
@@ -5350,13 +5358,13 @@ static int remaied_multi_initial(void)
 		TRACE_NOP;
 	};
 
-	retTmp = BS_fine_get_initial_ep5(ENUM_HOR_X, remLineX, &remLineCntX);
+    retTmp = BS_fine_get_initial_ep5(ENUM_HOR_X, remLineX, &remLineCntX, FINE_INIT_EP5_MIN_SLOPE);
 	if (retTmp) {
 		TRACE_ERROR("ERROR! remaied_multi_initial..0 mem over flow");
 		return -1; //mem error
 	}
 
-	retTmp = BS_fine_get_initial_ep5(ENUM_VER_Y, remLineY, &remLineCntY);
+    retTmp = BS_fine_get_initial_ep5(ENUM_VER_Y, remLineY, &remLineCntY, FINE_INIT_EP5_MIN_SLOPE);
 	if (retTmp) {
 		TRACE_ERROR("ERROR! remaied_multi_initial..0 mem over flow");
 		return -1; //mem error
@@ -5491,12 +5499,12 @@ static int remaied_multi_initial2()
     int len;
     int retTmp;
 
-    retTmp = BS_fine_get_initial_ep5(ENUM_HOR_X, remLineX, &remLineCntX);
+    retTmp = BS_fine_get_initial_ep5(ENUM_HOR_X, remLineX, &remLineCntX, FINE_INIT_EP5_MIN_SLOPE);
     if (retTmp) {
         TRACE_ERROR("ERROR! remaied_multi_initial2..0 mem over flow");
         return -1; //mem error
     }
-    retTmp = BS_fine_get_initial_ep5(ENUM_VER_Y, remLineY, &remLineCntY);
+    retTmp = BS_fine_get_initial_ep5(ENUM_VER_Y, remLineY, &remLineCntY, FINE_INIT_EP5_MIN_SLOPE);
     if (retTmp) {
         TRACE_ERROR("ERROR! remaied_multi_initial2..1 mem over flow");
         return -1; //mem error
@@ -5726,11 +5734,12 @@ BACKEND_STATUS BG_call_backend2(
 	next_scan_t *nextScan     // next scan infomation
 ) {
     //BACKEND_STATUS ret = NO_BACKEND_ERROR;
-	int retTmp; //i,
+	int retTmp = 0; //i,
     int multiLoopCnt, fineLoop;
     int inLineMax = 0;
     int skip_multi_2 = 0; //nsmoon@210218-bugfix
     int rmlineCnt = 0; //nsmoon@210430
+    int skipMulti = 0; //nsmoon@230614 //0:no-skip
     //int remainedLineMax = 0;
 	//side_type_t side;
     //int retAdj;
@@ -5849,9 +5858,24 @@ BACKEND_STATUS BG_call_backend2(
         InBuf->hor_len = InBuf->ver_len = 0; //nsmoon@221115
 		goto L_BG_call_backend_tracking;
 	}
+#if (MULTI_SKIP_LEN_X > 0)
+    skipMulti = ((int)InBuf->hor_len < MULTI_SKIP_LEN_X) ? 1 : 0; //nsmoon@230614
+#endif
+#ifdef CHECK_AS_PEN4
+    if (skipMulti == 0) {
+        if (nextScan->numTouch == PEN4_TOUCH_CNT) {
+            if ((InBuf->hor_len >= PEN4_LINE_X_MIN && InBuf->hor_len <= PEN4_LINE_X_MAX) &&
+                (InBuf->ver_len >= PEN4_LINE_Y_MIN && InBuf->ver_len <= PEN4_LINE_Y_MAX)) {
+                skipMulti = 1;
+            }
+        }
+    }
+    TRACE_OSY("skipMulti = %d", skipMulti );
+#endif
+
 #if (DEBUG_SHOW_FRAME_NO > 0) //&& defined(DEBUG_FRAME_NO)
 #ifdef FRONTEND_LINE_THRESHOLD
-	TRACE("---[%d](%d,%d)(%d,%d)", BG_frame_no, InBuf->hor_len, InBuf->ver_len, InBuf->threshold_x_cnt, InBuf->threshold_y_cnt); //BG_frame_no:
+    TRACE("---[%d](%d,%d)(%d,%d)%d", BG_frame_no, InBuf->hor_len, InBuf->ver_len, InBuf->threshold_x_cnt, InBuf->threshold_y_cnt, skipMulti); //BG_frame_no:
 #else
 	TRACE("---[%d](%d,%d)", BG_frame_no, (int)InBuf->hor_len, (int)InBuf->ver_len); //BG_frame_no:
 #endif
@@ -5869,7 +5893,8 @@ BACKEND_STATUS BG_call_backend2(
 	//////////////////////////
 	//update input buffer
 	//////////////////////////
-	get_input_buffer(InBuf);
+    get_input_buffer(InBuf);
+
 #if 0 //for test
     BS_packEdgePattern(ENUM_HOR_X, 0);
     BS_packEdgePattern(ENUM_VER_Y, 0);
@@ -5881,6 +5906,7 @@ BACKEND_STATUS BG_call_backend2(
     }
 #endif
 
+    if (skipMulti == 0) { //nsmoon@230614
     //////////////////////////
     // multi-touch
     //////////////////////////
@@ -6010,6 +6036,7 @@ BACKEND_STATUS BG_call_backend2(
     BS_packEdgePattern(ENUM_HOR_X, 1);
     BS_packEdgePattern(ENUM_VER_Y, 1);
 #endif
+    }
 
     //////////////////////////
     // fine-touch
@@ -6063,7 +6090,7 @@ BACKEND_STATUS BG_call_backend2(
             }
 #if (DEBUG_SHOW_FRAME_NO > 0)
         if (retTmp > 0) {
-            TRACE("-fine-,%d,%d %0.2f,%0.2f,", BG_touch_count, BG_frame_no, BG_touch_area[0], BG_touch_area[1]);
+            TRACE("-fine-,%d,%0.2f,%0.2f,[%d]", BG_touch_count, BG_touch_area[0], BG_touch_area[1], BG_frame_no);
             IS_DEBUG_FLAG{
                 TRACE_NOP;
             };
@@ -6356,6 +6383,9 @@ L_BG_call_backend_brush:
 #endif
 
 L_BG_call_backend_tracking: //nsmoon@211021
+    IS_DEBUG_FLAG {
+        TRACE_NOP;
+    };
     if (BG_touch_data_edge.x != 0) {
 #if 1 //nsmoon@220127
         retTmp = BS_is_edge(ENUM_HOR_X, BG_touch_data_edge.x);
@@ -6404,13 +6434,16 @@ L_BG_call_backend_tracking: //nsmoon@211021
 #endif
     OutBuf2->touch_count = BG_touch_count;
 #if defined(_WIN32) || defined(WIN32)
-    IS_DEBUG_FLAG{
+#if defined(DEBUG_FUNCTION_ENABLE_RELEASE)
+    //IS_DEBUG_FLAG
+    {
         if (BG_touch_count_prev != BG_touch_count) {
-            TRACE_RELEASE("===[%d]%d/%d(%d,%d)(%d,%d)", BG_frame_no, BG_touch_count, BG_touch_count_prev, InBuf->hor_len, InBuf->ver_len, InBuf->threshold_x_cnt, InBuf->threshold_y_cnt);
+            TRACE_RELEASE("===[%d] %d=>%d (%d,%d)(%d,%d)", BG_frame_no, BG_touch_count_prev, BG_touch_count, InBuf->hor_len, InBuf->ver_len, InBuf->threshold_x_cnt, InBuf->threshold_y_cnt);
             TRACE_NOP;
         }
         BG_touch_count_prev = BG_touch_count;
-    };
+    }
+#endif
 #endif
     if (BG_touch_count > 0)
     {

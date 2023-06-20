@@ -40,16 +40,13 @@ extern "C" {
 #define MAX_FINE_INITIAL_CXP_PER_LINE   MAX_INITIAL_LINE_FINE_Y //max initial cross point number //nsmoon@211028 MAX_TOUCH_LIMIT_FINE=>MAX_INITIAL_LINE_FINE_Y
 #if defined(GN65_TEST) //nsmoon@221116 for GN65
 #define FINE_CAL_WIDTH_INIT      1.0f
-#define FINE_GRID_WIDTH_INIT     8 //6 //5*CAL_WIDTH //nsmoon@211014a 6=>8
-#elif defined(N75_TEST)//nsmoon@230322 for N75
-#define FINE_CAL_WIDTH_INIT      0.6f //1.0f
+#define FINE_GRID_WIDTH_INIT     8 //6 //5*CAL_WIDTH
+#elif defined(N75_TEST) || defined(N65_TEST) //nsmoon@230411
+#define FINE_CAL_WIDTH_INIT      0.6f //0.8f
 #define FINE_GRID_WIDTH_INIT     8    //6
-#elif defined(N65_TEST) //nsmoon@230411 for N65 //TestData_N65ve\4p_top_2.dlt #73/76/79
-#define FINE_CAL_WIDTH_INIT      0.8f //0.6f
-#define FINE_GRID_WIDTH_INIT     6 //8
 #else
-#define FINE_CAL_WIDTH_INIT      0.6f  //0.6f // //0.5f
-#define FINE_GRID_WIDTH_INIT     8 //6 //5*CAL_WIDTH //nsmoon@211014a 6=>8
+#define FINE_CAL_WIDTH_INIT      0.6f
+#define FINE_GRID_WIDTH_INIT     8
 #endif
 #define FINE_CAL_WIDTH_NORM      FINE_CAL_WIDTH_INIT
 #define FINE_GRID_WIDTH_NORM     FINE_GRID_WIDTH_INIT
@@ -77,9 +74,13 @@ extern "C" {
 #else
 #define FINE_MIN_NUM_SLOT        3
 #endif
+#if defined(N75_TEST) || defined(N65_TEST)  //nsmoon@230510 1=>2
+#define FINE_MIN_NUM_SLOT_EDGE   2
+#else
 #define FINE_MIN_NUM_SLOT_EDGE   1
-#define FINA_MAX_DIFF_CNT        2
-#define FINA_MAX_DIFF_EDGE_CNT   5
+#endif
+#define FINE_MAX_DIFF_CNT        2
+#define FINE_MAX_DIFF_EDGE_CNT   5
 #define FINE_EDGE_DIST_FROM_AAREA       90.0f //50.0f //25.0f //30.0f  //nsmoon@200803 25=>50
 #define FINE_EDGE_DIST_FROM_AAREA_INIT  90.0f //50.0f //nsmooon@200205
 #define FINE_EDGE_DIST_FROM_TP          90.0f //50.0f //nsmooon@211019 50.0f=>90.0f
@@ -129,7 +130,11 @@ extern "C" {
 #else
 #define FINE_GHOST_SAME_AXIS            5.0f //10.0f //5.0f
 #define FINE_GHOST_NEAR_DIST            15.0f
+#if defined(N75_TEST) || defined(N65_TEST) //nsmoon@230419
+#define FINE_GHOST_NEAR_DIST_SAME_AXIS  150.0f //n65_4p_n65_4p_230412b.dlt #32 //40*3=120
+#else
 #define FINE_GHOST_NEAR_DIST_SAME_AXIS  20.0f //30.0f //nsmoon@211021 //nsmoon@211029 30.0f=>20.0f
+#endif
 #define FINE_GHOST_NEAR_DIST_Y          20.0f
 #define FINE_GHOST_NEAR_DIST_EDGE_X     20.0f //25.0f //40.0f //nsmoon@211029 25.0f=>20.0f
 //#define FINE_GHOST_NEAR_DIST_EDGE_Y     900.0f //170.0f //150.0f //40.0f
@@ -228,7 +233,12 @@ extern "C" {
 #define FINE_MAX_NEAR_LINE_DIST         6.0f //3.0f //nsmoon@190917a
 
 #define FINE_MAX_OVERLAP_TP_MINMAX_GAP  0.5f
+#if defined(N75_TEST) || defined(N65_TEST) //nsmoon@240426
+#define FINE_MAX_CLOSED_TP_MINMAX_GAP   15.0f //min-dist for 2-touch
+#define FINE_MAX_CLOSED_TOUCH_INFO_GAP  1.0f //nsmoon@230531 3.6f=>1.0f
+#else
 #define FINE_MAX_CLOSED_TP_MINMAX_GAP   10.0f //12.0f //15.0f, min/max, //nsmoon@0325 15=>12 //nsmoon@211028 12=>10
+#endif
 #if 1 //nsmoon@211102
 #define FINE_MAX_CLOSED_TP_1P_SPEED_GAP       25.0f
 #define FINE_MAX_CLOSED_TP_1P_SPEED_OPP_GAP   4.0f
@@ -430,6 +440,11 @@ typedef struct {
     pos_min_max_t mM2; //th10
     vec_t centerPos;
     uint8_t lineIdxX0;
+#ifdef FINE_REMOVE_GHOST_NEW
+    uint8_t lineIdxY0; //nsmoon@230419
+    uint8_t tiXcnt; //nsmoon@230424
+    uint8_t tiYcnt; //nsmoon@230515
+#endif
 } touch_info_fine_t;
 
 #if 1 //nsmoon@211028
@@ -445,6 +460,19 @@ typedef struct {
 } find_shadow_slope_line_t;
 #endif
 
+#if 1 //nsmoon@230418
+#define FINE_GHOST_MODE_X    0 //tp on same x-line
+#define FINE_GHOST_MODE_Y    1 //tp on same y-line
+#define FINE_GHOST_MODE_XY   2 //near tp
+#define FINE_GHOST_MODE_END  FINE_GHOST_MODE_XY //end
+#define FINE_REMOVE_GHOST_DENSE_DIFF_X    0.4f //0.6f
+#define FINE_REMOVE_GHOST_DENSE_DIFF_Y    0.4f //0.6f
+#define FINE_REMOVE_GHOST_DENSE_DIFF_X2   0.1f
+#define FINE_NEAR_CXP_DIST  3.0f //2.0f //EPSILON //0.8f //1.5f //2.0f //nsmoon@230426 3.0f
+#define FINE_EDGE_NEAR_CXP_DIST  2.0f //0.5f
+#define FINE_NEAR_EDGE_SLOPE   15
+#endif
+
 extern initial_line_t BS_initial_line_x[MAX_INITIAL_LINE_FINE_X];
 extern initial_line_t BS_initial_line_y[MAX_INITIAL_LINE_FINE_Y];
 extern int BS_initial_line_x_cnt, BS_initial_line_y_cnt;
@@ -452,7 +480,7 @@ extern int BS_initial_line_x_cnt, BS_initial_line_y_cnt;
 extern initial_line_a_t BS_initial_line_a_x[MAX_INITIAL_LINE_FINE_X];
 extern initial_line_a_t BS_initial_line_a_x2[MAX_INITIAL_LINE_FINE_X2];
 extern initial_line_a_t BS_initial_line_a_y[MAX_INITIAL_LINE_FINE_XY]; //nsmoon@230412 MAX_INITIAL_LINE_FINE_Y=>MAX_INITIAL_LINE_FINE_XY
-extern int BS_initial_line_a_x_cnt, BS_initial_line_a_x2_cnt, BS_initial_line_a_y_cnt; //BS_initial_line_a_x_cnt_real
+extern int BS_initial_line_a_x_cnt, BS_initial_line_a_y_cnt; //BS_initial_line_a_x2_cnt, BS_initial_line_a_x_cnt_real
 
 extern touch_info_fine_t BS_touch_info_fine[MAX_TOUCH_INFO_FINE_SIZE];
 extern int BS_touch_info_fine_cnt;
@@ -469,13 +497,21 @@ extern int BS_fine_add_remained_touch_brush2(int fineLoop);
 #endif
 extern int BS_fine_add_remained_touch_edge_x(); //nsmoon@201118
 extern int BS_fine_add_remained_touch_edge_y(); //nsmoon@220127
+
+#if 1 //nsmoon@230510
+#define FINE_INIT_EP5_MIN_SLOPE    0
+#define FINE_INIT_EP5_MAX_SLOPE    1
+extern int BS_fine_get_initial_ep5(axis_t axis, uint16_t *remLine, int *remLineCnt_in, int mode);
+#else
 extern int BS_fine_get_initial_ep5(axis_t axis, uint16_t *remLine, int *remLineCnt_in);
+#endif
 
 #ifdef USE_CUST_MALLOC //nsmon@201012
 extern int BS_max_fine_rem_init_line;
 extern int BS_fine_malloc(void);
 #endif
 
+extern void fine_get_tp(int fineLoop);
 /* Provide C++ Compatibility */
 #ifdef __cplusplus
 }

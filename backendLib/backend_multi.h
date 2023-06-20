@@ -45,6 +45,8 @@ extern "C" {
 #define MULTI_ADJ_EPA_GAP				18.0f
 #endif
 
+#define MULTI_SKIP_LEN_X    35 //nsmoon@230614 //0:no-skiop
+
 #if 1 //(MODEL_TOUCH_SIZE == MODEL_TOUCH_SIZE_75)||(MODEL_TOUCH_SIZE == MODEL_TOUCH_SIZE_85) //nsmoon@191218
 #define MULTI_ADJ_SEN_PITCH				10.0f
 #define MULTI_LIM_EPA_PAD				5.0f

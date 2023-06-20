@@ -3096,9 +3096,6 @@ void MainWindow::showDebugLabel(touch_point_t *tp)
         labelText[labelTextIdx++].sprintf("testNextScan.x1=%d %d", (int)testNextScan.x1, (int)testNextScan.y1);
         labelText[labelTextIdx++].sprintf("touch_data_edge.x=%0.1f %0.1f", testOuputBuffer2.touch_data_edge.x, testOuputBuffer2.touch_data_edge.y);
         labelText[labelTextIdx++].sprintf("MinX=%0.2f->%0.2f,MaxX=%0.2f->%0.2f,MinY=%0.2f->%0.2f,MaxY=%0.2f->%0.2f", min_max_before.minX, min_max_after.minX, min_max_before.maxX, min_max_after.maxX, min_max_before.minY, min_max_after.minY, min_max_before.maxY, min_max_after.maxY);
-#ifdef CHECK_AS_PEN4
-        labelText[labelTextIdx++].sprintf("YL=%d,XL=%d,YSL=%d,XSL=%d,PTC=%d,ITC=%d,S=%d", mTouchInfo.touchCnt.horYLineCnt, mTouchInfo.touchCnt.verXLineCnt, mTouchInfo.touchCnt.horYStdLineCnt, mTouchInfo.touchCnt.verXStdLineCnt, mTouchInfo.preTouchCnt, mTouchInfo.ignoreTouchCnt, mTouchInfo.status);
-#endif
 
         //labelText[labelTextIdx++].sprintf("Sz50m/M: X=%0.1f/%0.1f Y=%0.1f/%0.1f", s_debug_sizeXMin, s_debug_sizeXMax, s_debug_sizeYMin, s_debug_sizeYMax);
         //labelText[labelTextIdx++].sprintf("Sz10m/M: X=%0.1f/%0.1f Y=%0.1f/%0.1f", s_debug_th10sizeXMin, s_debug_th10sizeXMax, s_debug_th10sizeYMin, s_debug_th10sizeYMax);

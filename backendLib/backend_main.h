@@ -49,6 +49,20 @@ extern "C" {
 #define REM_LOOP_CNT_FINAL  (MAX_MULTI_LOOP_CNT+4) //6 //nsmoon@210430
 #endif
 
+#define CHECK_AS_PEN4
+#if (MODEL_SPT == MODEL_CTSI_N650_V100)
+#define PEN4_LINE_X_MIN       30//45
+#define PEN4_LINE_X_MAX       120//85
+#define PEN4_LINE_Y_MIN       20
+#define PEN4_LINE_Y_MAX       170//110
+#elif (MODEL_SPT == MODEL_CTSI_N750_V100)
+#define PEN4_LINE_X_MIN       40
+#define PEN4_LINE_X_MAX       90
+#define PEN4_LINE_Y_MIN       50
+#define PEN4_LINE_Y_MAX       120
+#endif
+#define PEN4_TOUCH_CNT        4
+
 //////////////////////////////////////////////////////
 // Exported Global function prototypes
 //
@@ -139,7 +153,7 @@ extern tp_line_cnt_t BG_touch_lineCnt[ALLOWABLE_TOUCH_BE];
 //extern int    BS_pdOffsetTblLen;
 #if 1 //(MODEL_SPT == MODEL_CTSK_850_V100) //nsmoon@200910
 #define MAX_REMAINED_LINE			500 //300
-#define MAX_REMAINED_LINE_SORT		100 //nsmoon@211028
+#define MAX_REMAINED_LINE_SORT		500 //nsmoon@230522 100=>500
 #else
 #define MAX_REMAINED_LINE			1024 //500 //nsmoon@200910, for test
 #endif
@@ -217,7 +231,7 @@ extern int BG_debug_pause;
 extern int BG_debug_misc[MAX_BG_DEBUG_MISC];
 
 #if defined(DEBUG_FUNCTION_ENABLE_ALL) || defined(DEBUG_FUNCTION_ENABLE_RELEASE)
-#define MAX_GRID_CAL_SLOT   (50)
+#define MAX_GRID_CAL_SLOT   (100) //nsmoon@230530 50=>100 //for test
 #define MAX_LINE_CAL_SLOT	(500)
 typedef struct {
     axis_t axis;

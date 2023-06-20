@@ -33,6 +33,11 @@ extern "C" {
 #ifndef DEBUG_FRAME_NO
 #define DEBUG_FRAME_NO      0
 #endif
+#if defined(QT_NO_DEBUG) && (QT_NO_DEBUG == 1)
+//#error "Release Build"
+#else
+//#error "Debug Build"
+#endif
 
 #ifndef DEBUG_FRAME_PAUSE
 #if (DEBUG_FRAME_NO > 0)
@@ -196,16 +201,17 @@ extern int BG_debug_flag, BG_debug_flag2, BS_debug_nop;
 #define RESET_DEBUG_FLAG2   (BG_debug_flag2 = 0)
 #define IS_NOT_DEBUG_FLAG    if(!BG_debug_flag)
 #ifdef DEBUG_MESSAGE_ENABLE
-#define TRACE(...) _myTrace(__VA_ARGS__) //_myTraceWrite
-#define TRACENR(...) _myTraceNR(__VA_ARGS__) //_myTraceWriteNR
-#define TRACE_ERROR(...) _myTrace(__VA_ARGS__) //_myTraceWrite
-#define TRACENR_ERROR(...) _myTraceNR(__VA_ARGS__) //_myTraceWrite
-#define TRACE_ERROR_MEM(...) _myTrace(__VA_ARGS__)
+#define TRACE(...) //_myTrace(__VA_ARGS__) //_myTraceWrite
+#define TRACENR(...) //_myTraceNR(__VA_ARGS__) //_myTraceWriteNR
+#define TRACE_ERROR(...) //_myTrace(__VA_ARGS__) //_myTraceWrite
+#define TRACENR_ERROR(...) //_myTraceNR(__VA_ARGS__) //_myTraceWrite
+#define TRACE_ERROR_MEM(...) //_myTrace(__VA_ARGS__)
 #define TRACE_NOP (BS_debug_nop++)
-#define TRACE_START_SIZE(...) _myTrace(__VA_ARGS__) //_myTraceWrite
-#define TRACE_RELEASE(...) _myTrace(__VA_ARGS__)
-#define TRACE_MALLOC(...) _myTrace(__VA_ARGS__)
-#define TRACE_SIZE_ADJ(...) _myTrace(__VA_ARGS__)
+#define TRACE_START_SIZE(...) //_myTrace(__VA_ARGS__) //_myTraceWrite
+#define TRACE_RELEASE(...) //_myTrace(__VA_ARGS__)
+#define TRACE_MALLOC(...) //_myTrace(__VA_ARGS__)
+#define TRACE_SIZE_ADJ(...) //_myTrace(__VA_ARGS__)
+#define TRACE_OSY(...) _myTrace(__VA_ARGS__) //_myTraceWrite
 #else
 #define TRACE(...)
 #define TRACENR(...)
@@ -288,7 +294,7 @@ extern int BG_debug_flag, BG_debug_flag2, BS_debug_nop;
 #define TRACE_POLYGON_POLYCLIP(...)  //_myDrawPolygon(__VA_ARGS__)
 #define TRACE_POLYGON_TMP(...)    //_myDrawPolygon(__VA_ARGS__) //debug unbalance edge pattern
 #define SEND_TOUCH(...) //_myDrawTouch(__VA_ARGS__)
-#define TRACE_RELEASE(...)
+#define TRACE_RELEASE(...) _myTrace(__VA_ARGS__)
 #else
 #define IS_DEBUG_FLAG    if(0)
 #define IS_DEBUG_FLAG2   if(0)
@@ -473,6 +479,10 @@ extern void DEBUG_show_start_end_(bd_type_t bd, int start, int end, int color);
 extern void DEBUG_show_BS_initial_polygon_(void);
 extern void DEBUG_show_BS_subject_polygon_(int color);
 extern void DEBUG_show_touch_point_(void);
+#endif
+
+#ifdef DEBUG_used_line //nsmoon@230522
+extern void DEBUG_dump_used_line(int seq1, int seq2);
 #endif
 
 #if 1 //nsmoon@220119

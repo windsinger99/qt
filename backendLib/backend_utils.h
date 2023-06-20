@@ -293,7 +293,7 @@ extern int BS_get_clipping_range(axis_t axis, ep_min_max_t *minMaxEp, pos_min_ma
 extern int BS_get_virtual_range(axis_t axis, sen_type_t sen, ep_min_max_t *minMaxEp, pos_min_max_t *minMaxPos, int senNo, int st_ed);
 extern int BS_get_sensor_via_p2(float x1Pos, float y1Pos, float x2Pos, float y2Pos, float y3Pos, float *senPosRet);
 extern void BS_3point_angle(vec a, vec b, vec c, float *angle);
-#if 1 //nsmoon@230412
+#ifndef FINE_REMOVE_GHOST_NEW //nsmoon@230412
 extern int BS_get_float_min_max_init(float *max, int *idxMax, int maxCnt, int minMax);
 extern int BS_get_float_min_max(float *max, int *idxMax, int maxCnt, int idx, float val, int idxVal, int minMax);
 #endif
@@ -356,12 +356,12 @@ extern int BS_adj_used_lines_tp(int tpStart, int tpEnd, int mode);
 #define EDGE_DIST_X			50.0f //nsmoon@200406 30.0f=>50.0f
 #define EDGE_DIST_Y			50.0f
 #else
-#if defined(N75_TEST) //nsmoon@230327
+#if defined(N75_TEST) || defined(N65_TEST) //nsmoon@230327
 #define EDGE_DIST_X			50.0f
 #define EDGE_DIST_Y			50.0f
-#elif defined(N65_TEST) //nsmoon@230411 //4p_top_1 #40 //n65_4p_230412b.dlt #32
-#define EDGE_DIST_X			100.0f
-#define EDGE_DIST_Y			100.0f
+//#elif defined(N65_TEST) //nsmoon@230411 //4p_top_1.dlt-#40 //n65_4p_230412b.dlt-#32
+//#define EDGE_DIST_X			100.0f
+//#define EDGE_DIST_Y			100.0f
 #else
 #define EDGE_DIST_X			100.0f //50.0f //nsmoon@200406 30.0f=>50.0f
 #define EDGE_DIST_Y			100.0f //50.0f //nsmoon@200910 50.0f=>100.0f

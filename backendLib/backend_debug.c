@@ -1177,5 +1177,57 @@ void DEBUG_show_touch_point_(void)
     }
 }
 #endif //DRAW_POLYGON_TEST
+#ifdef DEBUG_used_line //nsmoon@230522
+void DEBUG_dump_used_line(int seq1, int seq2)
+{
+    axis_t axis;
+    int i, maxInLineBufLed; //maxSizeInLineBuf,
+    int pd, led, inBufLen;
+    uint8_t ledMask, *inlineUsed2_pd;
+    DEF_PD *inBuf;
+    int maxPdNum, offsetTblLen, lineBufIdx;
+    int8_t *offsetTbl;
+
+    for (axis = 0; axis < (int)ENUM_AXIS_END; axis++) {
+        if (axis == (int)ENUM_HOR_X) {
+            inlineUsed2_pd = LINE_USED2_BUF_ADDR_X;
+            maxInLineBufLed = BS_max_in_line_buf_led_x;
+            //maxSizeInLineBuf = BS_max_in_line_buf_pd_x * BS_max_in_line_buf_led_x;
+            inBufLen = BS_inBuf->hor_len;
+            inBuf = &BS_inBuf->hor_touch_pd[0];
+            offsetTblLen = BS_offsetTblLenX;
+            maxPdNum = BS_maxHorPdNum;
+            offsetTbl = &BS_offsetTblX[0];
+        }
+        else {
+            inlineUsed2_pd = LINE_USED2_BUF_ADDR_Y;
+            maxInLineBufLed = BS_max_in_line_buf_led_y;
+            //maxSizeInLineBuf = BS_max_in_line_buf_pd_y * BS_max_in_line_buf_led_y;
+            inBufLen = BS_inBuf->ver_len;
+            inBuf = &BS_inBuf->ver_touch_pd[0];
+            offsetTblLen = BS_offsetTblLenY;
+            maxPdNum = BS_maxVerPdNum;
+            offsetTbl = &BS_offsetTblY[0];
+        }
+        for (i = 0; i < inBufLen; i++) {
+            pd = inBuf[i].pd;
+            if (inBuf[i].led >= offsetTblLen) {
+                TRACE_ERROR("ERROR! DEBUG_dump_used_line..invalid led offset (%d) %d [%d]", axis, inBuf[i].led, BG_frame_no);
+                continue;
+            }
+            led = inBuf[i].pd + offsetTbl[inBuf[i].led];
+            if (led < 0 || led >= maxPdNum) {
+                TRACE_ERROR("ERROR! DEBUG_dump_used_line..invalid led (%d) %d/%d/%d [%d]", axis, pd, led, maxPdNum, BG_frame_no);
+                continue;
+            }
+            lineBufIdx = GET_IN_LINE_IDX(pd, led);
+            ledMask = GET_LED_BIT_MASK(led);
+            if ((inlineUsed2_pd[lineBufIdx]&ledMask) == 0) {
+                TRACE("DEBUG_dump_used_line..%d/%d %d-%d-%d %02x (%d-%d)", seq1, seq2, axis, i, lineBufIdx, inlineUsed2_pd[lineBufIdx], pd, led);
+            }
+        }
+    }
+}
+#endif
 ////////////////////////////////////////////
 /*end of file */

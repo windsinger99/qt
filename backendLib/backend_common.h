@@ -46,7 +46,7 @@ extern "C" {
 #define MODEL_CTSI_N750_V100    75000 //samsung-wmc, nxp-one-chip
 #define MODEL_CTSI_N650_V100    65000 //samsung-wmc, nxp-one-chip
 
-#define MODEL_SPT			MODEL_CTSI_N650_V100 //MODEL_CTSI_N750_V100
+#define MODEL_SPT			MODEL_CTSI_N750_V100 //MODEL_CTSI_N750_V100
 
 //#define GN65_TEST //nsmoon@221116 for GN65
 //#define N75_TEST //nsmoon@230328 for N75
@@ -86,17 +86,7 @@ extern "C" {
 //#define VIRTUAL_EP_MERGE_ENABLE
 //#define MULTI_PACK_EP3_ENABLE
 #define MULTI_PACK_EP4_ENABLE
-
-#if 1 //(MODEL_SPT == MODEL_CTSI_N750_V100) //for test
-//#define FINE_SHARED_LINE_COORD3 //nsmoon@230329
-//#define DEBUG_UNBLOCKED_LINE //nsmoon@230403
-#endif
-#if 1 //for test //nsmoon@230412
-//#define DEBUG_SKIP_MULTI
-//define DEBUG_SKIP_AFTER_MULTI
-//#define DEBUG_SKIP_AFTER_FINE
-#endif
-#define FINE_INITIAL_LINE_CENT //nsmoon@230418
+//#define FINE_INITIAL_LINE_CENT //nsmoon@230418 //nsmoon@230613 no-used
 
 //#define X_SLOPE_55  //nsmoon@200318
 #ifndef DEBUG_UNBLOCKED_LINE
@@ -110,6 +100,7 @@ extern "C" {
 //#define FINE_INITIAL_LINE_NEW   //nsmoon@211119 //nsmoon@220124 not-used
 //#define TRACE_ERROR_ENABLE //nsmoon@211126
 //#define ADJUST_MIN_MAX_FINE_NEW //nsmoon@220308a //for jitter test
+#define FINE_REMOVE_GHOST_NEW //nsmoon@230613
 
 #if !defined(MODEL_SPT)
 #error "Not defined MODEL_SPT !!!"
