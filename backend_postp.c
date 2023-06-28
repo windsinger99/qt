@@ -2161,12 +2161,12 @@ static void smooth_filter_init(touchDataSt_t *pCurDataIn)
 //#define SIZE_2MM_SELECT_ENABLE
 static int update_touch_status(touchDataSt_t *pCurDataIn, int curInLength ,touchDataSt_t *pPrevDataIn)
 {
-	int i, prevIdx, id;
-	float sizeSq, thr10_50X, thr10_50Y, thr10_50;
+    int i, prevIdx, id;
+    float sizeSq, thr10_50X, thr10_50Y, thr10_50;
     uint16_t releaseLimit = RELEASE_LIMIT_PEN; //FIXME
-	uint16_t startLimit = START_LIMIT_PEN; //FIXME
+    uint16_t startLimit = START_LIMIT_PEN; //FIXME
 #ifdef SIZE_UP_FILTER_ENABLE
-	float upsizeCheck;
+    float upsizeCheck;
 #endif
 
     update_touch_scroll_info(curInLength);
@@ -2174,20 +2174,22 @@ static int update_touch_status(touchDataSt_t *pCurDataIn, int curInLength ,touch
     //check multi touch
 #if 1 //nsmoon@200305
     s_eraserFlag = 0;
+    s_prevTouchCntPen = 0;
     for (i = 0; i < curInLength; i++) {
-         sizeSq = pCurDataIn[i].xSize * pCurDataIn[i].ySize;
+        sizeSq = pCurDataIn[i].xSize * pCurDataIn[i].ySize;
         if (sizeSq > TOUCH_LARGE_ERASE_SIZE3) {
-        	s_eraserFlag++;
+            s_eraserFlag++;
         }
     }
+
     //if (multiFlag && s_eraserFlag)
     if (s_eraserFlag)
     {
-    	startLimit = START_FRAME_ERASE;	//2;	//1; YJ200428		// 0;
+        startLimit = START_FRAME_ERASE;	//2;	//1; YJ200428		// 0;
     }
     else if (curInLength > 2)
     {
-    	startLimit = START_FRAME_MULTI3;//START_LIMIT_PEN_SHORT;
+        startLimit = START_FRAME_MULTI3;//START_LIMIT_PEN_SHORT;
     }
     else startLimit = START_FRAME_LIMIT;
 #else
@@ -2217,9 +2219,9 @@ static int update_touch_status(touchDataSt_t *pCurDataIn, int curInLength ,touch
     /////////////////////////////////////
     //update touch state
     /////////////////////////////////////
-	for (i = 0; i < curInLength; i++) {
+    for (i = 0; i < curInLength; i++) {
         prevIdx = pCurDataIn[i].cxRef;
-    	id = pCurDataIn[i].contactID;
+        id = pCurDataIn[i].contactID;
 #ifdef FRONTEND_LINE_THRESHOLD //nsmoon@200206
         if (pCurDataIn[i].th50CntX > 0) {
             thr10_50X = (float)pCurDataIn[i].th10CntX / (float)pCurDataIn[i].th50CntX;
@@ -2238,13 +2240,13 @@ static int update_touch_status(touchDataSt_t *pCurDataIn, int curInLength ,touch
 #endif
 
 #ifdef	TOUCH_SCROLL_INFO_ENABLE
-		wheel_cordX = pCurDataIn[i].xCord;
-		wheel_cordY = pCurDataIn[i].yCord;
+        wheel_cordX = pCurDataIn[i].xCord;
+        wheel_cordY = pCurDataIn[i].yCord;
 #endif
 
-		switch (pCurDataIn[i].status) {
-		case TOUCH_START_STATE:
-		{
+        switch (pCurDataIn[i].status) {
+        case TOUCH_START_STATE:
+        {
 #if (DEBUG_BRUSH_MODE_TEST == 1)
 #if defined(SHOW_DEBUG_SIZE_DOWN_0205) || defined(DEBUG_FUNCTION_ENABLE_RELEASE)
             //if (i == 0) {
@@ -2256,146 +2258,143 @@ static int update_touch_status(touchDataSt_t *pCurDataIn, int curInLength ,touch
             break;
 #endif
             //check down threshold
-         //  if (thr10_50 > DOWN_THR10_50_RATIO)
-#if (MODEL_SPT == MODEL_CTSK_850_V100)
-#define THR10_50_RATIO_DOWN	0.2f	//0.1f
-#else
-#define THR10_50_RATIO_DOWN	0.17f//0.15f //0.2f	//0.15f
-#endif
+            //  if (thr10_50 > DOWN_THR10_50_RATIO)
+
+#define THR10_50_RATIO_DOWN	0.17f  //0.2f	//
             if (thr10_50 > THR10_50_RATIO_DOWN)
             {
 
 #if 0
-            if (pCurDataIn[i].pressedCnt < TOUCH_MAX_CNT) {
-        	    pCurDataIn[i].pressedCnt++;
-			}
+                if (pCurDataIn[i].pressedCnt < TOUCH_MAX_CNT) {
+                    pCurDataIn[i].pressedCnt++;
+                }
 
-            if (pCurDataIn[i].pressedCnt >= startLimit)
-            {
-  #if (MODEL_SPT == MODEL_IRT_550)
-            	decide_touch_size_550(pCurDataIn, i, pPrevDataIn);
-  #endif
-  #if (MODEL_SPT == MODEL_SPT_750) || (MODEL_SPT == MODEL_CTKS_750_V120) //nsmoon@191218
-              decide_touch_size_750(pCurDataIn, i, pPrevDataIn, multiFlag);
-  #endif
-  #if (MODEL_SPT == MODEL_CTKS_750_V130) || (MODEL_SPT == MODEL_CTKS_750_V140)  //nsmoon@191218, nsmoon@201103
+                if (pCurDataIn[i].pressedCnt >= startLimit)
+                {
+#if (MODEL_SPT == MODEL_IRT_550)
+                    decide_touch_size_550(pCurDataIn, i, pPrevDataIn);
+#endif
+#if (MODEL_SPT == MODEL_SPT_750) || (MODEL_SPT == MODEL_CTKS_750_V120) //nsmoon@191218
+                    decide_touch_size_750(pCurDataIn, i, pPrevDataIn, multiFlag);
+#endif
+#if (MODEL_SPT == MODEL_CTKS_750_V130) || (MODEL_SPT == MODEL_CTKS_750_V140)  //nsmoon@191218, nsmoon@201103
                     decide_touch_size_750_131(pCurDataIn, i, pPrevDataIn, multiFlag);
-                //decide_touch_size_750_test(pCurDataIn, i, pPrevDataIn);
-  #endif
-		}
+                    //decide_touch_size_750_test(pCurDataIn, i, pPrevDataIn);
+#endif
+                }
 #else
 
-				if (pCurDataIn[i].pressedCnt < TOUCH_MAX_CNT) {
-					pCurDataIn[i].pressedCnt++;
-				}
+                if (pCurDataIn[i].pressedCnt < TOUCH_MAX_CNT) {
+                    pCurDataIn[i].pressedCnt++;
+                }
 #if 0
-				if(pCurDataIn[i].pressedCnt > 1) add_pos_info(pCurDataIn, i);
-				else if(s_eraserFlag) add_pos_info(pCurDataIn, i);
+                if(pCurDataIn[i].pressedCnt > 1) add_pos_info(pCurDataIn, i);
+                else if(s_eraserFlag) add_pos_info(pCurDataIn, i);
 #else
 
-				if(pCurDataIn[i].pressedCnt > 1)
-				{
+                if(pCurDataIn[i].pressedCnt > 1)
+                {
                     add_pos_info(pCurDataIn, i);
-					if(prevIdx >= 0)
-					{
-						pCurDataIn[i].xCord = pPrevDataIn[prevIdx].xCord;
-						pCurDataIn[i].yCord = pPrevDataIn[prevIdx].yCord;
-					}
+                    if(prevIdx >= 0)
+                    {
+                        pCurDataIn[i].xCord = pPrevDataIn[prevIdx].xCord;
+                        pCurDataIn[i].yCord = pPrevDataIn[prevIdx].yCord;
+                    }
                 }
-				else if(s_eraserFlag)
-				{
+                else if(s_eraserFlag)
+                {
                     add_pos_info(pCurDataIn, i);
-					if(prevIdx >= 0)
-					{
-						pCurDataIn[i].xCord = pPrevDataIn[prevIdx].xCord;
-						pCurDataIn[i].yCord = pPrevDataIn[prevIdx].yCord;
-					}
-				}
+                    if(prevIdx >= 0)
+                    {
+                        pCurDataIn[i].xCord = pPrevDataIn[prevIdx].xCord;
+                        pCurDataIn[i].yCord = pPrevDataIn[prevIdx].yCord;
+                    }
+                }
 #endif
 
-				sizeSq = pCurDataIn[i].xSize * pCurDataIn[i].ySize;
-				if(sizeSq > MIN_SIZE_ERASER)
-				{
-					startLimit = START_FRAME_LIMIT_ERASER;
+                sizeSq = pCurDataIn[i].xSize * pCurDataIn[i].ySize;
+                if(sizeSq > MIN_SIZE_ERASER)
+                {
+                    startLimit = START_FRAME_LIMIT_ERASER;
                 }
 
-				//if (pCurDataIn[i].pressedCnt >= startLimit)
-				//{
+                //if (pCurDataIn[i].pressedCnt >= startLimit)
+                //{
 #ifdef SIZE_2MM_SELECT_ENABLE
-					if(pCurDataIn[i].pressedCnt >= STAY_FRAME_LIMIT)
-					{
-						TRACE("$");
-						decide_touch_size_750_132(pCurDataIn, i, pPrevDataIn, multiFlag);
-						pCurDataIn[i].status = TOUCH_DOWN_STATE;
-						//init_pos_info(i);
-					}
-					else
+                if(pCurDataIn[i].pressedCnt >= STAY_FRAME_LIMIT)
+                {
+                    TRACE("$");
+                    decide_touch_size_750_132(pCurDataIn, i, pPrevDataIn, multiFlag);
+                    pCurDataIn[i].status = TOUCH_DOWN_STATE;
+                    //init_pos_info(i);
+                }
+                else
 #endif
-					{
+                {
 
-						//if(i == 0)
-						{
+                    //if(i == 0)
+                    {
 
-							if(prevIdx >= 0) {
+                        if(prevIdx >= 0) {
 #ifdef SIZE_2MM_SELECT_ENABLE
-                                float diffX = GET_ABS(pCurDataIn[i].xCord - pPrevDataIn[prevIdx].xCord);
-                                float diffY = GET_ABS(pCurDataIn[i].yCord - pPrevDataIn[prevIdx].yCord);
-	if (diffX > TOUCH_START_MIN_MOVEMENT || diffY > TOUCH_START_MIN_MOVEMENT)
-								{
+                            float diffX = GET_ABS(pCurDataIn[i].xCord - pPrevDataIn[prevIdx].xCord);
+                            float diffY = GET_ABS(pCurDataIn[i].yCord - pPrevDataIn[prevIdx].yCord);
+                            if (diffX > TOUCH_START_MIN_MOVEMENT || diffY > TOUCH_START_MIN_MOVEMENT)
+                            {
 #endif
-									//if(diffX > TOUCH_START_MAX_MOVEMENT || diffY > TOUCH_START_MAX_MOVEMENT){
-									if (pCurDataIn[i].pressedCnt >= startLimit){
+                                //if(diffX > TOUCH_START_MAX_MOVEMENT || diffY > TOUCH_START_MAX_MOVEMENT){
+                                if (pCurDataIn[i].pressedCnt >= startLimit) {
 
-									//decide_touch_size_750_132(pCurDataIn, i, pPrevDataIn, multiFlag);
-								//print_pos_info(i, pCurDataIn[i].contactID);
+                                    //decide_touch_size_750_132(pCurDataIn, i, pPrevDataIn, multiFlag);
+                                    //print_pos_info(i, pCurDataIn[i].contactID);
 
-									//tTouchSizeInfo_t *ptFilteredData = get_filtered_data(pCurDataIn, i);
-										if(s_vtFilteredData[id].xSize >= 0)
-										{
-											pCurDataIn[i].th10CntX = s_vtFilteredData[id].th10CntX;
-											pCurDataIn[i].th50CntX = s_vtFilteredData[id].th50CntX;
-											pCurDataIn[i].th50CntY = s_vtFilteredData[id].th50CntY;
-											pCurDataIn[i].th10CntY = s_vtFilteredData[id].th10CntY;
-											pCurDataIn[i].th10WidthX = s_vtFilteredData[id].th10WidthX;
-											pCurDataIn[i].th10WidthY = s_vtFilteredData[id].th10WidthY;
-											pCurDataIn[i].xSize = s_vtFilteredData[id].xSize;
-											pCurDataIn[i].ySize = s_vtFilteredData[id].ySize;
+                                    //tTouchSizeInfo_t *ptFilteredData = get_filtered_data(pCurDataIn, i);
+                                    if(s_vtFilteredData[id].xSize >= 0)
+                                    {
+                                        pCurDataIn[i].th10CntX = s_vtFilteredData[id].th10CntX;
+                                        pCurDataIn[i].th50CntX = s_vtFilteredData[id].th50CntX;
+                                        pCurDataIn[i].th50CntY = s_vtFilteredData[id].th50CntY;
+                                        pCurDataIn[i].th10CntY = s_vtFilteredData[id].th10CntY;
+                                        pCurDataIn[i].th10WidthX = s_vtFilteredData[id].th10WidthX;
+                                        pCurDataIn[i].th10WidthY = s_vtFilteredData[id].th10WidthY;
+                                        pCurDataIn[i].xSize = s_vtFilteredData[id].xSize;
+                                        pCurDataIn[i].ySize = s_vtFilteredData[id].ySize;
 
-                                           decide_touch_size_750_132(pCurDataIn, i, pPrevDataIn, 0);
+                                        decide_touch_size_750_132(pCurDataIn, i, pPrevDataIn, 0);
 #if 0
-										   pCurDataIn[i].xCord = pPrevDataIn[prevIdx].xCord;
-										   pCurDataIn[i].yCord = pPrevDataIn[prevIdx].yCord;
+                                        pCurDataIn[i].xCord = pPrevDataIn[prevIdx].xCord;
+                                        pCurDataIn[i].yCord = pPrevDataIn[prevIdx].yCord;
 #endif
-                                            //pCurDataIn[i].status = TOUCH_DOWN_STATE;
+                                        //pCurDataIn[i].status = TOUCH_DOWN_STATE;
 
 
-                                           //TRACE("START::%0.2f,%0.2f,%0.2f,%0.2f,%d,%d,%d,%d,%0.2f,%0.2f, %d", pCurDataIn[i].xCord,  pCurDataIn[i].yCord, pCurDataIn[i].xSize, pCurDataIn[i].ySize,
-                                           //                     pCurDataIn[i].th50CntX, pCurDataIn[i].th10CntX, pCurDataIn[i].th50CntY, pCurDataIn[i].th10CntY,
-                                           //                     pCurDataIn[i].th10WidthX, pCurDataIn[i].th10WidthY, pCurDataIn[i].contactID);
-										}
-										else
-										{
-											TRACE("@");
-										}
-//									TRACE_TPT("%0.2f,%0.2f,%0.2f,%0.2f,%d,%d,%d,%d,%0.2f,%0.2f, %d", pCurDataIn[i].xCord,  pCurDataIn[i].yCord, pCurDataIn[i].xSize, pCurDataIn[i].ySize,
-//													pCurDataIn[i].th50CntX, pCurDataIn[i].th10CntX, pCurDataIn[i].th50CntY, pCurDataIn[i].th10CntY,
+                                        //TRACE("START::%0.2f,%0.2f,%0.2f,%0.2f,%d,%d,%d,%d,%0.2f,%0.2f, %d", pCurDataIn[i].xCord,  pCurDataIn[i].yCord, pCurDataIn[i].xSize, pCurDataIn[i].ySize,
+                                        //                     pCurDataIn[i].th50CntX, pCurDataIn[i].th10CntX, pCurDataIn[i].th50CntY, pCurDataIn[i].th10CntY,
+                                        //                     pCurDataIn[i].th10WidthX, pCurDataIn[i].th10WidthY, pCurDataIn[i].contactID);
+                                    }
+                                    else
+                                    {
+                                        TRACE("@");
+                                    }
+                                    //									TRACE_TPT("%0.2f,%0.2f,%0.2f,%0.2f,%d,%d,%d,%d,%0.2f,%0.2f, %d", pCurDataIn[i].xCord,  pCurDataIn[i].yCord, pCurDataIn[i].xSize, pCurDataIn[i].ySize,
+                                    //													pCurDataIn[i].th50CntX, pCurDataIn[i].th10CntX, pCurDataIn[i].th50CntY, pCurDataIn[i].th10CntY,
 //													pCurDataIn[i].th10WidthX, pCurDataIn[i].th10WidthY, pCurDataIn[i].contactID);
-										//init_pos_info(i);
-									}
+                                    //init_pos_info(i);
+                                }
 #ifdef SIZE_2MM_SELECT_ENABLE
-								}
+                            }
 #endif
 #if 0
-								else
-								{
-                                    pCurDataIn[i].xCord = pPrevDataIn[prevIdx].xCord;
-                                    pCurDataIn[i].yCord = pPrevDataIn[prevIdx].yCord;
-								}
+                            else
+                            {
+                                pCurDataIn[i].xCord = pPrevDataIn[prevIdx].xCord;
+                                pCurDataIn[i].yCord = pPrevDataIn[prevIdx].yCord;
+                            }
 #endif
-							}
-					}
-				}
-			#endif
+                        }
+                    }
+                }
+#endif
             } //if (DOWN_THR10_50_RATIO)
 #if defined(SHOW_DEBUG_SIZE_DOWN_0205) || defined(DEBUG_FUNCTION_ENABLE_RELEASE)
             //if (i == 0) {
@@ -2416,24 +2415,26 @@ static int update_touch_status(touchDataSt_t *pCurDataIn, int curInLength ,touch
             }
 #endif
         } //case TOUCH_START_STATE
-			break;
+        break;
 
-		case TOUCH_DOWN_STATE:
-		{
-#if 1 //defined(_WIN32) || defined(WIN32) //1: update size@down-state
+        case TOUCH_DOWN_STATE:
+        {
+#ifdef WMC_MODE_CHANGE
+            if(touchMode == APP_DRAW_BRUSH) {
+                pCurDataIn[i].status = TOUCH_UP_STATE;
+                break;
+            }
+#endif
+#if 0 //defined(_WIN32) || defined(WIN32) //1: update size@down-state
 #if defined(SHOW_DEBUG_SIZE_DOWN_0205) || defined(DEBUG_FUNCTION_ENABLE_RELEASE)
 #if (MODEL_SPT == MODEL_CTKS_750_V130) || (MODEL_SPT == MODEL_CTKS_750_V140)  || (MODEL_SPT == MODEL_CTSK_850_V100) //nsmoon@191218, nsmoon@201103
-                                    add_pos_info4test(pCurDataIn, i);
+            add_pos_info4test(pCurDataIn, i);
             decide_touch_size_750_132(pCurDataIn, i, pPrevDataIn, 0);
-                    //decide_touch_size_750_test(pCurDataIn, i, pPrevDataIn);
-#endif            
+            //decide_touch_size_750_test(pCurDataIn, i, pPrevDataIn);
+#endif
             //if (i == 0) {
             if (xSizeMinId >= 0) {
                 DEBUG_size_info_0205(&pCurDataIn[i], 0); //1:init
-
-                TRACE_SAVELOG(" %0.1f %0.1f %0.1f %0.1f %0.1f %0.1f %0.1f %0.1f \n\r",
-                              s_debug_sizeXMin, s_debug_sizeXMax, s_debug_sizeYMin, s_debug_sizeYMax,
-                              s_debug_th10sizeXMin, s_debug_th10sizeXMax, s_debug_th10sizeYMin, s_debug_th10sizeYMax);
             }
 #endif
 #endif //defined(_WIN32) || defined(WIN32)
@@ -2441,87 +2442,105 @@ static int update_touch_status(touchDataSt_t *pCurDataIn, int curInLength ,touch
             if (pCurDataIn[i].pressedCnt < TOUCH_MAX_CNT) {
                 pCurDataIn[i].pressedCnt++;
             }
+//#define MOVEMENT_AVG_FILTER_ENABLE
+#ifdef MOVEMENT_AVG_FILTER_ENABLE
+            if(curInLength < 3)
+            {
+                if (prevIdx >= 0) {
+                    s_movFilterData[i].xCord = pCurDataIn[i].xCord;
+                    s_movFilterData[i].yCord = pCurDataIn[i].yCord;
+                    pCurDataIn[i].xCord = (s_movFilterData[prevIdx].xCord + pCurDataIn[i].xCord)/2;
+                    pCurDataIn[i].yCord = (s_movFilterData[prevIdx].yCord + pCurDataIn[i].yCord)/2;
+                }
+            }
 
+#endif
 #ifdef SIZE_UP_FILTER_ENABLE
 #define THR10_50_RATIO_UP		0.1f//0.25f	//0.1f
 #define THR10_50_RATIO_UP_2ND	0.50f
-#define UP_CON_SIZE				2.0f	//2.4f//2.20f //REF
+#define UP_CON_SIZE				1.75f	//2.4f//2.20f //REF
 #define UP_CON_SIZE_EDGE		1.5f
 #define UP_CON_SIZE_SIDE		1.5f
 #define UP_CON_SIZE_ERASE		1.7f
 
-		if(s_eraserFlag)
-		{
-			upsizeCheck =  UP_CON_SIZE_ERASE;
-		}
-		else
-		{
-			float vfXAxisInfo[4]={ s_aarea_zero_x, SIZE_XCORD_L, SIZE_XCORD_R, s_aarea_end_x};
-			float vfYAxisInfo[4]={ s_aarea_zero_y, SIZE_YCORD_L, SIZE_YCORD_R, s_aarea_end_y};
-			if(IsSide(pCurDataIn[i].xCord, pCurDataIn[i].yCord, vfXAxisInfo, 4, vfYAxisInfo, 4))
-			{
-				 upsizeCheck =  UP_CON_SIZE_SIDE;
-			}
-			else if(IsEdge(pCurDataIn[i].xCord, pCurDataIn[i].yCord, vfXAxisInfo, 4, vfYAxisInfo, 4))
-			{
-				 upsizeCheck =  UP_CON_SIZE_EDGE;
-			}
-			else
-			{
-				 upsizeCheck =  UP_CON_SIZE;
-			}
-		}
+            if(s_eraserFlag)
+            {
+                upsizeCheck =  UP_CON_SIZE_ERASE;
+            }
+            else
+            {
+                float vfXAxisInfo[4]= { s_aarea_zero_x, SIZE_XCORD_L, SIZE_XCORD_R, s_aarea_end_x};
+                float vfYAxisInfo[4]= { s_aarea_zero_y, SIZE_YCORD_L, SIZE_YCORD_R, s_aarea_end_y};
+                if(IsSide(pCurDataIn[i].xCord, pCurDataIn[i].yCord, vfXAxisInfo, 4, vfYAxisInfo, 4))
+                {
+                    upsizeCheck =  UP_CON_SIZE_SIDE;
+                }
+                else if(IsEdge(pCurDataIn[i].xCord, pCurDataIn[i].yCord, vfXAxisInfo, 4, vfYAxisInfo, 4))
+                {
+                    upsizeCheck =  UP_CON_SIZE_EDGE;
+                }
+                else
+                {
+                    upsizeCheck =  UP_CON_SIZE;
+                }
+            }
 
-		if((thr10_50X < THR10_50_RATIO_UP && thr10_50Y < THR10_50_RATIO_UP)
-		||((thr10_50X < THR10_50_RATIO_UP_2ND || thr10_50Y < THR10_50_RATIO_UP_2ND) && (pCurDataIn[i].xSize < upsizeCheck || pCurDataIn[i].ySize < upsizeCheck)))
-		{
-			if (prevIdx >= 0) {
-				pCurDataIn[i].xCord = pPrevDataIn[prevIdx].xCord;
-				pCurDataIn[i].yCord = pPrevDataIn[prevIdx].yCord;
-			}
-		}
+            if((thr10_50X < THR10_50_RATIO_UP && thr10_50Y < THR10_50_RATIO_UP)
+                    ||((thr10_50X < THR10_50_RATIO_UP_2ND || thr10_50Y < THR10_50_RATIO_UP_2ND) && (pCurDataIn[i].xSize < upsizeCheck || pCurDataIn[i].ySize < upsizeCheck)))
+            {
+                if (prevIdx >= 0) {
+                    pCurDataIn[i].xCord = pPrevDataIn[prevIdx].xCord;
+                    pCurDataIn[i].yCord = pPrevDataIn[prevIdx].yCord;
+                }
+            }
 #endif
+
+
 #if 0 //nsmoon@200909, to fix 750 1st sample
             //if (s_eraserFlag)
             {
-	            if (pCurDataIn[i].th10CntX == 0 && pCurDataIn[i].th10CntY == 0) {
-					if (prevIdx >= 0) {
-						pCurDataIn[i].xCord = pPrevDataIn[prevIdx].xCord;
-						pCurDataIn[i].yCord = pPrevDataIn[prevIdx].yCord;
-	                }
-	            	//pCurDataIn[i].status = TOUCH_UP_STATE;
+                if (pCurDataIn[i].th10CntX == 0 && pCurDataIn[i].th10CntY == 0) {
+                    if (prevIdx >= 0) {
+                        pCurDataIn[i].xCord = pPrevDataIn[prevIdx].xCord;
+                        pCurDataIn[i].yCord = pPrevDataIn[prevIdx].yCord;
+                    }
+                    //pCurDataIn[i].status = TOUCH_UP_STATE;
                 }
             }
 #endif
             pCurDataIn[i].releaseCnt = 0; //nsmoon@201127
-		}
-            break;
+            //TRACE_RELEASE("%d = %d\n\r",i, pCurDataIn[i].sizeType );
+            if (pCurDataIn[i].sizeType == ENUM_SIZE_PEN || pCurDataIn[i].sizeType == ENUM_SIZE_MARKER) {
+                s_prevTouchCntPen++;
+            }
+        }
+        break;
 
-		case TOUCH_UP_STATE:
+        case TOUCH_UP_STATE:
         {
 #if defined(_WIN32) || defined(WIN32)
 #if defined(SHOW_DEBUG_SIZE_DOWN_0205) || defined(DEBUG_FUNCTION_ENABLE_RELEASE)
-        	s_testBufCnt[pCurDataIn[i].contactID]= 0;
+            s_testBufCnt[pCurDataIn[i].contactID]= 0;
 #endif
 #endif //defined(_WIN32) || defined(WIN32)
 
 #if 1 //reserved, do not remove
             //release cnt
             if (pCurDataIn[i].releaseCnt < TOUCH_MAX_CNT) {
-			    pCurDataIn[i].releaseCnt++;
-			}
-			if (pCurDataIn[i].releaseCnt < releaseLimit) {
-				pCurDataIn[i].status = TOUCH_DOWN_STATE;
-				TRACE_TPT("u");
-				if (prevIdx >= 0 && prevIdx < ALLOWABLE_TOUCH_DATA_IO) {
-				    //transfer previous position
-                    IS_DEBUG_FLAG{ TRACE_TPT("change:%d(%d)", i, pCurDataIn[i].contactID);}
-					pCurDataIn[i].xCord = pPrevDataIn[prevIdx].xCord;
-					pCurDataIn[i].yCord = pPrevDataIn[prevIdx].yCord;
+                pCurDataIn[i].releaseCnt++;
+            }
+            if (pCurDataIn[i].releaseCnt < releaseLimit) {
+                pCurDataIn[i].status = TOUCH_DOWN_STATE;
+                TRACE_TPT("u");
+                if (prevIdx >= 0 && prevIdx < ALLOWABLE_TOUCH_DATA_IO) {
+                    //transfer previous position
+                    IS_DEBUG_FLAG { TRACE_TPT("change:%d(%d)", i, pCurDataIn[i].contactID);}
+                    pCurDataIn[i].xCord = pPrevDataIn[prevIdx].xCord;
+                    pCurDataIn[i].yCord = pPrevDataIn[prevIdx].yCord;
                 }
-				else {
-					TRACE_ERROR("ERROR! invalid prevIdx: %d", prevIdx);
-				}
+                else {
+                    TRACE_ERROR("ERROR! invalid prevIdx: %d", prevIdx);
+                }
             } //if (pCurDataIn[i].releaseCnt < releaseLimit)
 
 #endif
@@ -2534,21 +2553,21 @@ static int update_touch_status(touchDataSt_t *pCurDataIn, int curInLength ,touch
             }
 #endif
 #if 0 //def SHOW_DEBUG_SIZE_VAR
-              if (pCurDataIn[0].status == TOUCH_UP_STATE) {
-            	  s_debug_size_type = 0;
-            	  s_debug_sizeSq = 0;
-            	  s_debug_sizeX = 0;
-            	  s_debug_sizeY = 0;
-              }
+            if (pCurDataIn[0].status == TOUCH_UP_STATE) {
+                s_debug_size_type = 0;
+                s_debug_sizeSq = 0;
+                s_debug_sizeX = 0;
+                s_debug_sizeY = 0;
+            }
 #endif
         }
-            break;
+        break;
 
         default:
-			TRACE_ERROR("ERROR! unknown touchPosDataIn[].status: %d, %d", i, pCurDataIn[i].status);
+            TRACE_ERROR("ERROR! unknown touchPosDataIn[].status: %d, %d", i, pCurDataIn[i].status);
             break;
         }
-	} //for (i = 0; i < curInLength; i++)
+    } //for (i = 0; i < curInLength; i++)
 #ifdef MARKER_POS_REL_ENABLE //nsmoon@201214
     exp_marker_pos_rel();
 #endif
@@ -2908,7 +2927,6 @@ void s_touch_point_tracking(void)
     ///////////////////////////////////////////////
     memset(&s_allocIDTbl[0], TOUCH_ID_UNALLOC, MAX_TOUCH_ID_ALLOCTBL);
     prevInLength = 0; //reset
-    s_prevTouchCntPen = 0;
     for (i = 0; i < curInLength; i++) {
         //update allocation table
     	s_allocIDTbl[pCurDataIn[i].contactID] = pCurDataIn[i].contactID;
@@ -2918,9 +2936,6 @@ void s_touch_point_tracking(void)
             pPrevDataIn[prevInLength].used = 0; //reset previous
             pPrevDataIn[prevInLength].cxRef = -1;
             prevInLength++;
-            if (pCurDataIn[i].sizeType == ENUM_SIZE_PEN || pCurDataIn[i].sizeType == ENUM_SIZE_MARKER) {
-                s_prevTouchCntPen++;
-            }
         }
     }
 

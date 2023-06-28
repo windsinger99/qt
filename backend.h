@@ -355,11 +355,11 @@
 #define DEBUG_LED_OFF		GPIO_PortClear(DEBUG_LED_GPIO, 1u << DEBUG_LED_GPIO_PIN)
 #define DEBUG_DELAY_COUNT	8000000
 #define DEBUG_DELAY_1M \
-	DEBUG_LED_TOGGLE; \
+    DEBUG_LED_TOGGLE; \
     volatile uint32_t debugCnt = 0; \
-	for (debugCnt = 0; debugCnt < 1000000; debugCnt++) { \
-	    __asm("NOP"); /* delay */ \
-	} /*sys clock check, -O0, 8-instuctions */
+    for (debugCnt = 0; debugCnt < 1000000; debugCnt++) { \
+        __asm("NOP"); /* delay */ \
+    } /*sys clock check, -O0, 8-instuctions */
 #endif //gpio
 
 #if defined(_WIN32) || defined(WIN32)

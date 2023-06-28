@@ -17,7 +17,7 @@
 #ifndef _BACKEND_POSTP_H    /* Guard against multiple inclusion */
 #define _BACKEND_POSTP_H
 #include "backend.h"
-
+#include "bezier.h"
 /* Provide C++ Compatibility */
 #ifdef __cplusplus
 extern "C" {
@@ -330,8 +330,8 @@ extern int s_debug_size_type, s_debug_edge;
 //#define SIZE_UP_FILTER_ENABLE
 #if 0
 typedef struct {
-	uint16_t xCord;
-	uint16_t yCord;
+    uint16_t xCord;
+    uint16_t yCord;
 } touch_pos_t;
 #endif
 
@@ -341,25 +341,25 @@ typedef enum
     ENUM_SIZE_PEN = 0x02,
     ENUM_SIZE_MARKER = 0x03,
     ENUM_SIZE_ERASER = 0x04,
-	ENUM_SIZE_S_ERASER = 0x05,
+    ENUM_SIZE_S_ERASER = 0x05,
     ENUM_SIZE_UNKNOWN = 0xFF
 } size_type_t;
 
 #define TOUCH_MAX_CNT			0xFF //uint8_t: pressedCnt, releaseCnt
 #define TOUCH_ID_UNALLOC		0xFF //un-alloc
 typedef struct {
-	uint8_t contactID;
-	uint8_t status;
-	uint8_t pressedCnt;
-	uint8_t releaseCnt;
-	float xCord;
-	float yCord;
-	float xSize;
-	float ySize;
-	float distSquare;
-	float xVel;
-	float yVel;
-	int8_t used;
+    uint8_t contactID;
+    uint8_t status;
+    uint8_t pressedCnt;
+    uint8_t releaseCnt;
+    float xCord;
+    float yCord;
+    float xSize;
+    float ySize;
+    float distSquare;
+    float xVel;
+    float yVel;
+    int8_t used;
 #if 1 //nsmoon@211105
     float distSquare2;
     int8_t cxRef2;
@@ -372,8 +372,8 @@ typedef struct {
     uint8_t th10CntX;
     uint8_t th50CntY;
     uint8_t th10CntY;
-	float th10WidthX;
-	float th10WidthY;
+    float th10WidthX;
+    float th10WidthY;
 #endif
     int8_t multi_fine; //for debugging
 #if	1	//KYJ20200228
@@ -385,20 +385,20 @@ typedef struct {
 
 //for Brush
 typedef enum {
-	MOVE_NONE = 0,
-	MOVE_X_POS = 1,
-	MOVE_Y_POS = 2,
-	MOVE_XY_POS = 3
+    MOVE_NONE = 0,
+    MOVE_X_POS = 1,
+    MOVE_Y_POS = 2,
+    MOVE_XY_POS = 3
 } move_pos_status_t;
 
 typedef enum {
-	NORMAL_SIZE = 0,
-	ERASER_SIZE	= 1
+    NORMAL_SIZE = 0,
+    ERASER_SIZE	= 1
 } brush_size_mode_status_t;
 
 typedef enum {
-	NORMAL_SIZE_PROCESS = 0,
-	ERASER_SIZE_PROCESS	= 1
+    NORMAL_SIZE_PROCESS = 0,
+    ERASER_SIZE_PROCESS	= 1
 } brush_process_t;
 
 #if 0
@@ -410,22 +410,22 @@ typedef struct {
 
 #if 1 //shj@20200421 for window drawing (multi pen) & bursh
 typedef enum {
-	NOT_IN_USE_ID = 0x00,
-	IN_USE_ID = 0x01,
-	NEW_ID = 0x02,
-	ID_STATUS_ERROR
+    NOT_IN_USE_ID = 0x00,
+    IN_USE_ID = 0x01,
+    NEW_ID = 0x02,
+    ID_STATUS_ERROR
 }TP_ID_STATUS_T;
 
 typedef struct {
-	uint8_t *tp_ID_Status_buf;
-	uint8_t *tp_ID_idx_buf;
-	uint8_t *tp_Big_Size_ID_buf;
-	//uint8_t in_use_ID;
+    uint8_t *tp_ID_Status_buf;
+    uint8_t *tp_ID_idx_buf;
+    uint8_t *tp_Big_Size_ID_buf;
+    //uint8_t in_use_ID;
 } TP_ID_INFO_T;
 
 typedef struct {
-	uint32_t *data_stream_cnt;
-	uint32_t tp_send_start_cnt;
+    uint32_t *data_stream_cnt;
+    uint32_t tp_send_start_cnt;
 } DEF_TOUCH_DATA_FRAME;
 #endif
 

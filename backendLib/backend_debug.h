@@ -201,17 +201,16 @@ extern int BG_debug_flag, BG_debug_flag2, BS_debug_nop;
 #define RESET_DEBUG_FLAG2   (BG_debug_flag2 = 0)
 #define IS_NOT_DEBUG_FLAG    if(!BG_debug_flag)
 #ifdef DEBUG_MESSAGE_ENABLE
-#define TRACE(...) //_myTrace(__VA_ARGS__) //_myTraceWrite
-#define TRACENR(...) //_myTraceNR(__VA_ARGS__) //_myTraceWriteNR
-#define TRACE_ERROR(...) //_myTrace(__VA_ARGS__) //_myTraceWrite
-#define TRACENR_ERROR(...) //_myTraceNR(__VA_ARGS__) //_myTraceWrite
-#define TRACE_ERROR_MEM(...) //_myTrace(__VA_ARGS__)
+#define TRACE(...) _myTrace(__VA_ARGS__) //_myTraceWrite
+#define TRACENR(...) _myTraceNR(__VA_ARGS__) //_myTraceWriteNR
+#define TRACE_ERROR(...) _myTrace(__VA_ARGS__) //_myTraceWrite
+#define TRACENR_ERROR(...) _myTraceNR(__VA_ARGS__) //_myTraceWrite
+#define TRACE_ERROR_MEM(...) _myTrace(__VA_ARGS__)
 #define TRACE_NOP (BS_debug_nop++)
-#define TRACE_START_SIZE(...) //_myTrace(__VA_ARGS__) //_myTraceWrite
-#define TRACE_RELEASE(...) //_myTrace(__VA_ARGS__)
-#define TRACE_MALLOC(...) //_myTrace(__VA_ARGS__)
-#define TRACE_SIZE_ADJ(...) //_myTrace(__VA_ARGS__)
-#define TRACE_OSY(...) _myTrace(__VA_ARGS__) //_myTraceWrite
+#define TRACE_START_SIZE(...) _myTrace(__VA_ARGS__) //_myTraceWrite
+#define TRACE_RELEASE(...) _myTrace(__VA_ARGS__)
+#define TRACE_MALLOC(...) _myTrace(__VA_ARGS__)
+#define TRACE_SIZE_ADJ(...) _myTrace(__VA_ARGS__)
 #else
 #define TRACE(...)
 #define TRACENR(...)

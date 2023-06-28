@@ -54,7 +54,7 @@ extern "C" {
 #define PEN4_LINE_X_MIN       30//45
 #define PEN4_LINE_X_MAX       120//85
 #define PEN4_LINE_Y_MIN       20
-#define PEN4_LINE_Y_MAX       170//110
+#define PEN4_LINE_Y_MAX       230//110
 #elif (MODEL_SPT == MODEL_CTSI_N750_V100)
 #define PEN4_LINE_X_MIN       40
 #define PEN4_LINE_X_MAX       90

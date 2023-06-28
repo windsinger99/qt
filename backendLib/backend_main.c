@@ -5870,7 +5870,6 @@ BACKEND_STATUS BG_call_backend2(
             }
         }
     }
-    TRACE_OSY("skipMulti = %d", skipMulti );
 #endif
 
 #if (DEBUG_SHOW_FRAME_NO > 0) //&& defined(DEBUG_FRAME_NO)

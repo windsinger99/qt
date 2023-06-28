@@ -261,7 +261,7 @@ MainWindow::MainWindow(QWidget *parent) :
     this->showFullScreen();
 #if 1 //(QT_NO_DEBUG == 1) //nsmoon@180512
     if (QApplication::desktop()->screenCount() > 1) {
-        QRect scr2ndRect = QApplication::desktop()->screenGeometry(1);
+        QRect scr2ndRect = QApplication::desktop()->screenGeometry(0);
         this->setGeometry(scr2ndRect);
         scene->setSceneRect(0, 0, scr2ndRect.width(), scr2ndRect.height());
     }

@@ -41,12 +41,12 @@ extern "C" {
 
 #define MODEL_CTSK_850_V100     8501 //samsung, nxp+pic
 
-#define MODEL_CTSI_550_SINGLE_V100  	55010 //samsung, pic single chip
+#define MODEL_CTSI_550_SINGLE_V100  	55010 //samsung, pic single chipsork
 
 #define MODEL_CTSI_N750_V100    75000 //samsung-wmc, nxp-one-chip
 #define MODEL_CTSI_N650_V100    65000 //samsung-wmc, nxp-one-chip
 
-#define MODEL_SPT			MODEL_CTSI_N750_V100 //MODEL_CTSI_N750_V100
+#define MODEL_SPT			MODEL_CTSI_N650_V100 //MODEL_CTSI_N750_V100
 
 //#define GN65_TEST //nsmoon@221116 for GN65
 //#define N75_TEST //nsmoon@230328 for N75
