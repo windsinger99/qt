@@ -95,6 +95,9 @@ ATTR_BACKEND_RAM2 uint16_t BS_remained_x[MAX_REMAINED_LINE];
 ATTR_BACKEND_RAM2 uint16_t BS_remained_y[MAX_REMAINED_LINE];
 ATTR_BACKEND_RAM2 int BS_remained_x_cnt, BS_remained_y_cnt;
 ATTR_BACKEND_RAM2 uint16_t BS_remained_sort[MAX_REMAINED_LINE_SORT]; //nsmoon@211028
+#ifdef N75_TEST
+ATTR_BACKEND_RAM2 uint16_t BS_remained_sort_y[MAX_REMAINED_LINE_SORT]; //nsmoon@230516
+#endif
 
 #if 0 //nsmoon@191209
 ATTR_BACKEND_RAM2 uint16_t BS_remained2_x[MAX_REMAINED2_LINE];
@@ -200,8 +203,6 @@ ATTR_BACKEND_RAM2 tp_size_t BG_debug_touch_size[ALLOWABLE_TOUCH_BE];
 ATTR_BACKEND_RAM2 int8_t BG_debug_multi_fine[ALLOWABLE_TOUCH_BE];
 ATTR_BACKEND_RAM2 pos_minMax2_t BG_debug_touch_area_minmax[ALLOWABLE_TOUCH_BE];
 #endif
-
-ATTR_BACKEND_RAM2 int BG_preTouchCnt;
 
 //------------------------------------------------------------------
 int BS_set_unset2_used_led_pd(axis_t axis, int led, int pd, int mode)
@@ -1373,10 +1374,6 @@ int BG_init_backend(
     maxProcessCnt = 0;
     maxSubjCnt = 0;
 	maxClipIdx = 0;
-#endif
-
-#ifdef CHECK_AS_PEN4
-    BG_preTouchCnt = 0;
 #endif
 
     DEBUG_GET_TIME_DIFF_INIT();
@@ -5861,11 +5858,10 @@ BACKEND_STATUS BG_call_backend2(
 #if (MULTI_SKIP_LEN_X > 0)
     skipMulti = ((int)InBuf->hor_len < MULTI_SKIP_LEN_X) ? 1 : 0; //nsmoon@230614
 #endif
-#ifdef CHECK_AS_PEN4
+#ifdef CHECK_AS_PEN4 //seyoung.oh@230621
     if (skipMulti == 0) {
         if (nextScan->numTouch == PEN4_TOUCH_CNT) {
-            if ((InBuf->hor_len >= PEN4_LINE_X_MIN && InBuf->hor_len <= PEN4_LINE_X_MAX) &&
-                (InBuf->ver_len >= PEN4_LINE_Y_MIN && InBuf->ver_len <= PEN4_LINE_Y_MAX)) {
+            if ((InBuf->hor_len <= PEN4_LINE_X_MAX) && (InBuf->ver_len <= PEN4_LINE_Y_MAX)) {
                 skipMulti = 1;
             }
         }
@@ -5874,7 +5870,7 @@ BACKEND_STATUS BG_call_backend2(
 
 #if (DEBUG_SHOW_FRAME_NO > 0) //&& defined(DEBUG_FRAME_NO)
 #ifdef FRONTEND_LINE_THRESHOLD
-    TRACE("---[%d](%d,%d)(%d,%d)%d", BG_frame_no, InBuf->hor_len, InBuf->ver_len, InBuf->threshold_x_cnt, InBuf->threshold_y_cnt, skipMulti); //BG_frame_no:
+    TRACE("---[%d](%d,%d)(%d,%d)%d %d", BG_frame_no, InBuf->hor_len, InBuf->ver_len, InBuf->threshold_x_cnt, InBuf->threshold_y_cnt, skipMulti, nextScan->numTouch); //BG_frame_no:
 #else
 	TRACE("---[%d](%d,%d)", BG_frame_no, (int)InBuf->hor_len, (int)InBuf->ver_len); //BG_frame_no:
 #endif
@@ -5892,8 +5888,7 @@ BACKEND_STATUS BG_call_backend2(
 	//////////////////////////
 	//update input buffer
 	//////////////////////////
-    get_input_buffer(InBuf);
-
+	get_input_buffer(InBuf);
 #if 0 //for test
     BS_packEdgePattern(ENUM_HOR_X, 0);
     BS_packEdgePattern(ENUM_VER_Y, 0);

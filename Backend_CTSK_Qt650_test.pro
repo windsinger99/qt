@@ -21,7 +21,8 @@ SOURCES += main.cpp\
     ctrldialog.cpp \
     backend_postp.c \
     hid.c \
-    backend_draw_thread.cpp
+    backend_draw_thread.cpp \
+    bezier.c \
 
 
 HEADERS  += mainwindow.h \
@@ -31,7 +32,8 @@ HEADERS  += mainwindow.h \
     ctrldialog.h \
     backend_postp.h \
     hidapi.h \
-    backend_draw_thread.h
+    backend_draw_thread.h \
+    bezier.h \
 
 FORMS    += mainwindow.ui \
     ctrldialog.ui \

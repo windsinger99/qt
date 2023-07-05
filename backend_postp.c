@@ -16,6 +16,8 @@
 /* ************************************************************************** */
 #include "backend.h"
 #include "backend_postp.h"
+#include "bezier.h"
+
 #if !defined(_WIN32) && !defined(WIN32)
 #include "app.h"
 #endif
@@ -102,6 +104,9 @@ ATTR_BACKEND_RAM3 touch_scroll_info_t s_touch_scroll_info[ALLOWABLE_TOUCH_DATA_I
 ATTR_BACKEND_RAM3 int s_scroll_Flag, s_scroll_State, s_non_Scroll_Flag, s_non_Scroll_cnt, s_scroll_stats_on_delay;
 ATTR_BACKEND_RAM3 float wheel_cordX, wheel_cordY;
 #endif
+
+ATTR_BACKEND_RAM3 mBz tBz[ALLOWABLE_TOUCH_DATA_IO];
+ATTR_BACKEND_RAM3 mBzStatus[ALLOWABLE_TOUCH_DATA_IO];
 
 #if defined(_WIN32) || defined(WIN32) //nsmoon@200224
 float s_sensor_zero_x, s_sensor_end_x;
@@ -3014,69 +3019,135 @@ void s_smooth_filter(void)
         if (pCurDataIn[i].status == TOUCH_DOWN_STATE) //nsmoon@200310
         {
             if (pPrevFilterOut[tId].x < 0) {
-                pCurFilterOut[i].x = pCurDataIn[i].xCord;
-                pCurFilterOut[i].y = pCurDataIn[i].yCord;
-                s_movSqFlag[tId] = 0;
-           }
-           else {
-                pCurFilterOut[i].x = (A0_OUT_FINE * pCurDataIn[i].xCord) + ((1 - A0_OUT_FINE) * pPrevFilterOut[tId].x);
-                pCurFilterOut[i].y = (A0_OUT_FINE * pCurDataIn[i].yCord) + ((1 - A0_OUT_FINE) * pPrevFilterOut[tId].y);
-                //TRACE("X:%0.1f=%0.1f+%0.1f", pCurFilterOut[i].x, pCurDataIn[i].xCord, pPrevFilterOut[tid].x);
-                //TRACE("Y:%0.1f=%0.1f+%0.1f", pCurFilterOut[i].y, pCurDataIn[i].yCord, pPrevFilterOut[tid].y);
-	#if	1 //def TOUCH_DOWN_MIN_MOVEMENT // YJ 20200624 TEST for jitter
-				//if (curInLength <= 2)
-				if (s_eraserFlag == 0)
-				{
-					float diffX = pCurFilterOut[i].x - pPrevFilterOut[tId].x;
-					float diffY = pCurFilterOut[i].y - pPrevFilterOut[tId].y;
-					float distSquare = (diffX * diffX) + (diffY * diffY);
-#if 0
-					if (distSquare < TOUCH_DOWN_MIN_MOVEMENT_SQ) {
-						pCurFilterOut[i].x = pPrevFilterOut[tId].x;
-						pCurFilterOut[i].y = pPrevFilterOut[tId].y;
-					}
-#endif
-		#if 1
-					if (distSquare < TOUCH_DOWN_MIN_MOVEMENT_SQ) {
-						if(++s_movSqFlag[tId] > 10 )
-						{
-							s_movSqFlag[tId] = 0;
-						}
-						else
-						{
-							pCurFilterOut[i].x = pPrevFilterOut[tId].x;
-							pCurFilterOut[i].y = pPrevFilterOut[tId].y;
-						}
-					}
-					else
-					{
-						s_movSqFlag[tId] = 0;
-					}
-		#else
-					if (distSquare < TOUCH_DOWN_MIN_MOVEMENT_SQ) {
-						if (distSquare < TOUCH_DOWN_MIN_MOVEMENT2_SQ) {
-							if(++s_movSqFlag[tId] > 10 )
-							{
-								s_movSqFlag[tId] = 0;
+                if (!s_eraserFlag) {
+                    #ifdef BZ_FILTER_USE
+                        memset(&tBz[tId], 0, sizeof(mBz));
+                        mBzStatus[tId] = 1;
+                        tBz[tId].curPosX[tBz[tId].cnt] = pCurDataIn[i].xCord;
+                        tBz[tId].curPosY[tBz[tId].cnt] = pCurDataIn[i].yCord;
 
-							}
-							else
-							{
-						pCurFilterOut[i].x = pPrevFilterOut[tId].x;
-						pCurFilterOut[i].y = pPrevFilterOut[tId].y;
-					}
-				}
-						else
-						{
-							pCurFilterOut[i].x = pPrevFilterOut[tId].x;
-							pCurFilterOut[i].y = pPrevFilterOut[tId].y;
-							s_movSqFlag[tId] = 0;
-						}
-					}
+                        pCurFilterOut[i].x = tBz[tId].curPosX[tBz[tId].cnt];
+                        pCurFilterOut[i].y = tBz[tId].curPosY[tBz[tId].cnt];
 
-		#endif
-				}
-	#endif
+                        s_movSqFlag[tId] = 0;
+                        tBz[tId].cnt++;
+                    #else
+                        mBzStatus[tId] = 0;
+                        pCurFilterOut[i].x = pCurDataIn[i].xCord;
+                        pCurFilterOut[i].y = pCurDataIn[i].yCord;
+                        s_movSqFlag[tId] = 0;
+                    #endif
+                } else {
+                    mBzStatus[tId] = 0;
+                    pCurFilterOut[i].x = pCurDataIn[i].xCord;
+                    pCurFilterOut[i].y = pCurDataIn[i].yCord;
+                    s_movSqFlag[tId] = 0;
+                }
+            }
+            else {
+                if (mBzStatus[tId]) {
+                    #ifdef BZ_FILTER_USE
+                        float bzFilterOutX = 0;
+                        float bzFilterOutY = 0;
+                        bzFilterOutX = pCurDataIn[i].xCord;
+                        bzFilterOutY = pCurDataIn[i].yCord;
+
+                        if (tBz[tId].cnt >= BZ_MAX_CNT) {
+
+                            memcpy(&tBz[tId].prePosX, &tBz[tId].curPosX, sizeof(tBz[tId].curPosX));
+                            memcpy(&tBz[tId].prePosY, &tBz[tId].curPosY, sizeof(tBz[tId].curPosY));
+
+                            tBz[tId].prePosX[tBz[tId].cnt] = pCurDataIn[i].xCord;
+                            tBz[tId].prePosY[tBz[tId].cnt] = pCurDataIn[i].yCord;
+
+                            tBz[tId].step++;
+                            tBz[tId].cnt = 0;
+
+                            bzFilterOutX = beizerFilterAnalysis(tBz[tId].reportCnt, tBz[tId].prePosX);
+                            bzFilterOutY = beizerFilterAnalysis(tBz[tId].reportCnt, tBz[tId].prePosY);
+
+                            tBz[tId].curPosX[tBz[tId].cnt] = pCurDataIn[i].xCord;
+                            tBz[tId].curPosY[tBz[tId].cnt] = pCurDataIn[i].yCord;
+                        } else {
+                            tBz[tId].curPosX[tBz[tId].cnt] = pCurDataIn[i].xCord;
+                            tBz[tId].curPosY[tBz[tId].cnt] = pCurDataIn[i].yCord;
+
+                            if (tBz[tId].cnt == (BZ_MAX_CNT-1)) {
+                                tBz[tId].reportCnt = 0;
+                                bzFilterOutX = beizerFilterAnalysis(tBz[tId].reportCnt, tBz[tId].curPosX);
+                                bzFilterOutY = beizerFilterAnalysis(tBz[tId].reportCnt, tBz[tId].curPosY);
+                                tBz[tId].reportCnt++;
+                            } else {
+                                if (tBz[tId].step > 0) {
+                                    bzFilterOutX = beizerFilterAnalysis(tBz[tId].reportCnt, tBz[tId].prePosX);
+                                    bzFilterOutY = beizerFilterAnalysis(tBz[tId].reportCnt, tBz[tId].prePosY);
+                                    tBz[tId].reportCnt++;
+                                }
+                            }
+                        }
+                        tBz[tId].cnt++;
+
+                        if (!bzFilterOutX || !bzFilterOutY ) {
+                            return;
+                        }
+
+                        pCurFilterOut[i].x = bzFilterOutX;
+                        pCurFilterOut[i].y = bzFilterOutY;
+
+                    #else
+                        pCurFilterOut[i].x = (A0_OUT_FINE * pCurDataIn[i].xCord) + ((1 - A0_OUT_FINE) * pPrevFilterOut[tId].x);
+                        pCurFilterOut[i].y = (A0_OUT_FINE * pCurDataIn[i].yCord) + ((1 - A0_OUT_FINE) * pPrevFilterOut[tId].y);
+                        //TRACE("X:%0.1f=%0.1f+%0.1f", pCurFilterOut[i].x, pCurDataIn[i].xCord, pPrevFilterOut[tid].x);
+                        //TRACE("Y:%0.1f=%0.1f+%0.1f", pCurFilterOut[i].y, pCurDataIn[i].yCord, pPrevFilterOut[tid].y);
+                        if (s_eraserFlag == 0)
+                        {
+                            float diffX = pCurFilterOut[i].x - pPrevFilterOut[tId].x;
+                            float diffY = pCurFilterOut[i].y - pPrevFilterOut[tId].y;
+                            float distSquare = (diffX * diffX) + (diffY * diffY);
+                            if (distSquare < TOUCH_DOWN_MIN_MOVEMENT_SQ) {
+                                if(++s_movSqFlag[tId] > 10 )
+                                {
+                                    s_movSqFlag[tId] = 0;
+                                }
+                                else
+                                {
+                                    pCurFilterOut[i].x = pPrevFilterOut[tId].x;
+                                    pCurFilterOut[i].y = pPrevFilterOut[tId].y;
+                                }
+                            }
+                            else
+                            {
+                                s_movSqFlag[tId] = 0;
+                            }
+                        }
+                    #endif
+                } else {
+                    pCurFilterOut[i].x = (A0_ERASE_OUT_FINE * pCurDataIn[i].xCord) + ((1 - A0_ERASE_OUT_FINE) * pPrevFilterOut[tId].x);
+                    pCurFilterOut[i].y = (A0_ERASE_OUT_FINE * pCurDataIn[i].yCord) + ((1 - A0_ERASE_OUT_FINE) * pPrevFilterOut[tId].y);
+                    //TRACE("X:%0.1f=%0.1f+%0.1f", pCurFilterOut[i].x, pCurDataIn[i].xCord, pPrevFilterOut[tid].x);
+                    //TRACE("Y:%0.1f=%0.1f+%0.1f", pCurFilterOut[i].y, pCurDataIn[i].yCord, pPrevFilterOut[tid].y);
+                    if (s_eraserFlag == 0)
+                    {
+                        float diffX = pCurFilterOut[i].x - pPrevFilterOut[tId].x;
+                        float diffY = pCurFilterOut[i].y - pPrevFilterOut[tId].y;
+                        float distSquare = (diffX * diffX) + (diffY * diffY);
+                        if (distSquare < TOUCH_DOWN_MIN_MOVEMENT_SQ) {
+                            if(++s_movSqFlag[tId] > 10 )
+                            {
+                                s_movSqFlag[tId] = 0;
+                            }
+                            else
+                            {
+                                pCurFilterOut[i].x = pPrevFilterOut[tId].x;
+                                pCurFilterOut[i].y = pPrevFilterOut[tId].y;
+                            }
+                        }
+                        else
+                        {
+                            s_movSqFlag[tId] = 0;
+                        }
+                    }
+                }
             }
             pPrevFilterOut[tId] = pCurFilterOut[i];
         }
@@ -3084,11 +3155,11 @@ void s_smooth_filter(void)
         {
 #ifdef TOUCH_DOWN_MIN_MOVEMENT //nsmoon@200227
             if (pPrevFilterOut[tId].x >= 0) {
-            	if (s_eraserFlag) {
-    			    pCurFilterOut[i].x = pCurDataIn[i].xCord;
-    			    pCurFilterOut[i].y = pCurDataIn[i].yCord;
-            	}
-            	else {
+                if (s_eraserFlag) {
+                    pCurFilterOut[i].x = pCurDataIn[i].xCord;
+                    pCurFilterOut[i].y = pCurDataIn[i].yCord;
+                }
+                else {
                     pCurFilterOut[i].x = pPrevFilterOut[tId].x;
                     pCurFilterOut[i].y = pPrevFilterOut[tId].y;
                 }
@@ -3096,8 +3167,8 @@ void s_smooth_filter(void)
             else
 #endif
             {
-			    pCurFilterOut[i].x = pCurDataIn[i].xCord;
-			    pCurFilterOut[i].y = pCurDataIn[i].yCord;
+                pCurFilterOut[i].x = pCurDataIn[i].xCord;
+                pCurFilterOut[i].y = pCurDataIn[i].yCord;
             }
         }
 #else

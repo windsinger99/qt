@@ -41,16 +41,12 @@ extern "C" {
 
 #define MODEL_CTSK_850_V100     8501 //samsung, nxp+pic
 
-#define MODEL_CTSI_550_SINGLE_V100  	55010 //samsung, pic single chipsork
+#define MODEL_CTSI_550_SINGLE_V100  	55010 //samsung, pic single chip
 
 #define MODEL_CTSI_N750_V100    75000 //samsung-wmc, nxp-one-chip
 #define MODEL_CTSI_N650_V100    65000 //samsung-wmc, nxp-one-chip
 
 #define MODEL_SPT			MODEL_CTSI_N650_V100 //MODEL_CTSI_N750_V100
-
-//#define GN65_TEST //nsmoon@221116 for GN65
-//#define N75_TEST //nsmoon@230328 for N75
-#define N65_TEST //nsmoon@230411 for N65
 
 ///////////////////////////////////////////////////////////
 // Touch Size
@@ -86,6 +82,7 @@ extern "C" {
 //#define VIRTUAL_EP_MERGE_ENABLE
 //#define MULTI_PACK_EP3_ENABLE
 #define MULTI_PACK_EP4_ENABLE
+//#define FINE_ADJ_GRP_5A //nsmoon@230509 //nsmoon@230621 not-used
 //#define FINE_INITIAL_LINE_CENT //nsmoon@230418 //nsmoon@230613 no-used
 
 //#define X_SLOPE_55  //nsmoon@200318
@@ -99,7 +96,8 @@ extern "C" {
 #define MULTI_SKIP_USED_VB    //nsmoon@210218
 //#define FINE_INITIAL_LINE_NEW   //nsmoon@211119 //nsmoon@220124 not-used
 //#define TRACE_ERROR_ENABLE //nsmoon@211126
-//#define ADJUST_MIN_MAX_FINE_NEW //nsmoon@220308a //for jitter test
+#define ADJUST_MIN_MAX_FINE_NEW //nsmoon@220308a //for jitter test //nsmoon@230614
+//#define FINE_CAL_MIN_MAX5_ENABLE  //use fine_cal_min_max5 //nsmoon@230614 not-used
 #define FINE_REMOVE_GHOST_NEW //nsmoon@230613
 
 #if !defined(MODEL_SPT)
@@ -107,6 +105,14 @@ extern "C" {
 #endif
 #if (MODEL_SPT == MODEL_CTKC_750)
 #define USE_VALID_OFST_TBL	1 //nsmoon@191129
+#endif
+
+//#define GN65_TEST //nsmoon@221116 for GN65
+#if (MODEL_SPT == MODEL_CTSI_N650_V100)
+#define N65_TEST //nsmoon@230411 for N65
+#endif
+#if (MODEL_SPT == MODEL_CTSI_N750_V100)
+#define N75_TEST //nsmoon@230328 for N75
 #endif
 
 #if (MODEL_SPT == MODEL_KIO_550) || (MODEL_SPT == MODEL_KIO_430) //nsmoon@200402

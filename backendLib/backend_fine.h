@@ -28,6 +28,9 @@ extern "C" {
 #define FINE_CAL_MIN_MAX
 
 #define FINE_MEM_ERROR			-1
+#define FINE_ERROR              1
+#define FINE_OK                 0
+
 #define FINE_GROUP_FOUND		1
 #define FINE_NO_GROUP			0
 #define FINE_OUT_OF_INST		2
@@ -106,7 +109,7 @@ extern "C" {
 #if defined(GN65_TEST) //nsmoon@221122
 #define FINE_INITIAL_GRP_DIST_X_OLD     2.3f //1.5f
 #define FINE_INITIAL_GRP_DIST_Y_OLD     1.5f //1.3f
-#elif defined(N75_TEST) || defined(N65_TEST)//nsmoon@230322
+#elif defined(N75_TEST__) || defined(N65_TEST__)//nsmoon@230322
 #define FINE_INITIAL_GRP_DIST_X_OLD     2.3f
 #define FINE_INITIAL_GRP_DIST_Y_OLD     2.0f
 #else
@@ -481,6 +484,10 @@ extern initial_line_a_t BS_initial_line_a_x[MAX_INITIAL_LINE_FINE_X];
 extern initial_line_a_t BS_initial_line_a_x2[MAX_INITIAL_LINE_FINE_X2];
 extern initial_line_a_t BS_initial_line_a_y[MAX_INITIAL_LINE_FINE_XY]; //nsmoon@230412 MAX_INITIAL_LINE_FINE_Y=>MAX_INITIAL_LINE_FINE_XY
 extern int BS_initial_line_a_x_cnt, BS_initial_line_a_y_cnt; //BS_initial_line_a_x2_cnt, BS_initial_line_a_x_cnt_real
+extern int BS_initial_line_a_x_slope, BS_initial_line_a_y_slope;
+#ifdef N75_TEST //nsmoon@230425
+extern vec_t BS_initial_cxp[MAX_INITIAL_LINE_FINE_XY];
+#endif
 
 extern touch_info_fine_t BS_touch_info_fine[MAX_TOUCH_INFO_FINE_SIZE];
 extern int BS_touch_info_fine_cnt;
@@ -511,7 +518,6 @@ extern int BS_max_fine_rem_init_line;
 extern int BS_fine_malloc(void);
 #endif
 
-extern void fine_get_tp(int fineLoop);
 /* Provide C++ Compatibility */
 #ifdef __cplusplus
 }

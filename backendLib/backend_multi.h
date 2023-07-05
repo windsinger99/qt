@@ -90,7 +90,7 @@ extern "C" {
 #if defined(GN65_TEST) //nsmoon@230131
 #define MULTI_MIN_TOUCH_AREA            8.0f
 #elif defined(N75_TEST) || defined(N65_TEST)//nsmoon@230328
-#define MULTI_MIN_TOUCH_AREA            36.0f //16.0f //10.0f //nsmoon@230410 16.0f //nsmoon@230418 36.0f
+#define MULTI_MIN_TOUCH_AREA            23.0f //36.0f //16.0f //10.0f //nsmoon@230410 16.0f //nsmoon@230418 36.0f //nsmoon@230620 23.0f
 #else
 #define MULTI_MIN_TOUCH_AREA            16.0f //10.0f //16.0f //nsmoon@211018 16.0f=>10.0f //nsmoon@211028 10.0f=>16.0f
 #endif

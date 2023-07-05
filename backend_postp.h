@@ -105,11 +105,20 @@ extern int s_debug_size_type, s_debug_edge;
 ///////////////////////////////////////////////
 #define SMOOTHING_FILTER_ENABLE     //filter enable
 //#define CHECK_INITIAL_MOVEMENT //nsmoon@191220
-#define A0_OUT_FINE					0.35f	//1.0f//0.3f	//	//0.3f
+#ifdef BZ_FILTER_USE
+#define A0_BZ_OUT_FINE				0.7f
+#define A0_ERASE_OUT_FINE			0.9f
+#define A0_OUT_FINE					0.35f //0.35f//1.0f//0.3f
+#else
+#define A0_OUT_FINE					0.35f//1.0f//0.3f
+#define A0_ERASE_OUT_FINE			0.35f
+#endif
+
 #define A0_OUT_FINE_SIZE			0.5f
 #define A0_OUT_FINE_ERASER			0.5f
 #define A0_OUT_BRUSH_SIZE			0.5f
 #define A1_OUT_BRUSH_SIZE			0.5f	//2nd Size Filter
+
 //#define RELEASE_LIMIT_MFINGER		1
 //#define START_LIMIT_MFINGER			2 //1
 #define RELEASE_LIMIT_PEN			2 	//1

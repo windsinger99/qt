@@ -49,12 +49,10 @@ extern "C" {
 #define REM_LOOP_CNT_FINAL  (MAX_MULTI_LOOP_CNT+4) //6 //nsmoon@210430
 #endif
 
-#define CHECK_AS_PEN4
+#define CHECK_AS_PEN4 //seyoung.oh@230621
 #if (MODEL_SPT == MODEL_CTSI_N650_V100)
-#define PEN4_LINE_X_MIN       30//45
-#define PEN4_LINE_X_MAX       120//85
-#define PEN4_LINE_Y_MIN       20
-#define PEN4_LINE_Y_MAX       230//110
+#define PEN4_LINE_X_MAX       120
+#define PEN4_LINE_Y_MAX       230
 #elif (MODEL_SPT == MODEL_CTSI_N750_V100)
 #define PEN4_LINE_X_MIN       40
 #define PEN4_LINE_X_MAX       90
@@ -153,7 +151,7 @@ extern tp_line_cnt_t BG_touch_lineCnt[ALLOWABLE_TOUCH_BE];
 //extern int    BS_pdOffsetTblLen;
 #if 1 //(MODEL_SPT == MODEL_CTSK_850_V100) //nsmoon@200910
 #define MAX_REMAINED_LINE			500 //300
-#define MAX_REMAINED_LINE_SORT		500 //nsmoon@230522 100=>500
+#define MAX_REMAINED_LINE_SORT		MAX_REMAINED_LINE //nsmoon@230522 100=>MAX_REMAINED_LINE
 #else
 #define MAX_REMAINED_LINE			1024 //500 //nsmoon@200910, for test
 #endif
@@ -161,6 +159,9 @@ extern uint16_t BS_remained_x[MAX_REMAINED_LINE];
 extern uint16_t BS_remained_y[MAX_REMAINED_LINE];
 extern int BS_remained_x_cnt, BS_remained_y_cnt;
 extern uint16_t BS_remained_sort[MAX_REMAINED_LINE_SORT]; //nsmoon@211028
+#ifdef N75_TEST
+extern uint16_t BS_remained_sort_y[MAX_REMAINED_LINE_SORT]; //nsmoon@230516
+#endif
 
 #if 1 //nsmoon@191209
 #define MAX_REMAINED2_LINE			100
