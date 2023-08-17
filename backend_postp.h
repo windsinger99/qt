@@ -130,8 +130,10 @@ extern int s_debug_size_type, s_debug_edge;
 #define START_FRAME_LIMIT_ERASER	6	//5	//10		//YJ1127
 
 #if defined(_WIN32) || defined(WIN32)
-#define D2MIN_LIMIT_INITIAL			5000
-#define D2MIN_LIMIT_PEN				50000
+#define D2MIN_LIMIT_INITIAL			8000 //1500	//65VE
+#define D2MIN_LIMIT_PEN				80000 //15000//65VE
+//#define D2MIN_LIMIT_INITIAL			5000
+//#define D2MIN_LIMIT_PEN				50000
 #define D2MIN_ACCEL_MFINGER			15000
 #define ACCEL_LIMIT_PEN				30
 //#define ACCEL_LIMIT_MFINGER			200
@@ -203,21 +205,22 @@ extern int s_debug_size_type, s_debug_edge;
 #define START_FRAME_MULTI3			5
 #define START_FRAME_ERASE			5
 
-#define MAX_SIZE_PEN_2          13.0f	//15.0f //11.0f	//14.0f //1204	//12.5f	//8.0f R0004	//7.5f					//  < w_max  2
-#define MAX_SIZE_MARKER_1      	14.0f	//16.0f // 12.0f	//15.0f //1204	//13.0f	//8.0f R0004	//7.5f					//  > w_min  4
+#define MAX_SIZE_PEN_2          11.0f	//15.0f //11.0f	//14.0f //1204	//12.5f	//8.0f R0004	//7.5f					//  < w_max  2
+#define MAX_SIZE_MARKER_1      	12.0f	//16.0f // 12.0f	//15.0f //1204	//13.0f	//8.0f R0004	//7.5f					//  > w_min  4
 
 #define MAX_SIZE_PEN_E2         12.0f	//7.0f	//12.5f			//  < w_max  2
 #define MAX_SIZE_MARKER_E1      13.0f	//7.5f	//13.0f			//  > w_min  4
 
 #define MAX_SIZE_MARKER_2       24.0f	//15.0f			//  > w_max  31
 
-#define MAX_SIZE_PEN_2_EDGE     12.0f	//11.0f R0004
-#define MAX_SIZE_MARKER_1_EDGE  13.0f	//11.0f	R0004
-#define MAX_SIZE_MARKER_2_EDGE  22.0f	//12.0f R0004
+#define MAX_SIZE_PEN_2_EDGE     11.0f	//11.0f R0004
+#define MAX_SIZE_MARKER_1_EDGE  15.0f	//11.0f	R0004
+#define MAX_SIZE_MARKER_2_EDGE  26.0f	//12.0f R0004
 
-#define MAX_SIZE_PEN_2_SIDE     12.0f	//8.0f R0004
-#define MAX_SIZE_MARKER_1_SIDE  13.0f	//8.0f R0004
-#define MAX_SIZE_MARKER_2_SIDE  22.0f	//11.0f	R004
+#define MAX_SIZE_PEN_2_SIDE     11.0f	//8.0f R0004
+#define MAX_SIZE_MARKER_1_SIDE  15.0f	//8.0f R0004
+#define MAX_SIZE_MARKER_2_SIDE  26.0f	//11.0f	R004
+
 
 #elif (MODEL_SPT == MODEL_CTSK_550_V100)
 #define START_FRAME_LIMIT			7		//YJ@210323	//10 //2105	//4  //750 PV	//3	//4 R0004 YJ200428

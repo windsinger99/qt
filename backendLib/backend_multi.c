@@ -6160,7 +6160,10 @@ static int is_exist_tp_from_edge(axis_t axis, int idx_i, int touch_info_cnt)
 #endif
 
 #ifdef DEBUG_FUNCTION_ENABLE_ALL
-#define TRACE_MIAT(...)    //TRACE(__VA_ARGS__)
+#define DEBUG_MULTI_SMALL_SURROUNED_LARGE   1
+#endif
+#if (DEBUG_MULTI_SMALL_SURROUNED_LARGE > 0)
+#define TRACE_MIAT(...)    TRACE(__VA_ARGS__)
 #else
 #define TRACE_MIAT(...)
 #endif
@@ -6176,6 +6179,19 @@ static int multi_is_adjacent_tp_surrounded(axis_t axis, int idx_i, int idx_j)
     float sizeRatio = MULTI_GHOST_SIZE_RATIO;
 	int edge_x = 0, edge_y = 0;
     int sameOppLine = 0;
+#if 1  //nsmoon@230802 WMB-CTSI-0650-VE-FE_BE-APP/Issues/#7
+    float ghost_min_max_dist;
+    if (nM_i->eraser_pen || nM_j->eraser_pen) {
+        IS_DEBUG_FLAG{
+            TRACE_NOP;
+        };
+        ghost_min_max_dist = (axis == ENUM_HOR_X) ? BS_aarea_end_y : BS_aarea_end_x;
+        diffMargin = MULTI_GHOST_MIN_DIST_SURR*2;
+    }
+    else {
+        ghost_min_max_dist = MULTI_GHOST_MIN_MAX_TOL;
+    }
+#endif
 
     //idx_j might be smaller than idx_i
 
@@ -6197,18 +6213,18 @@ static int multi_is_adjacent_tp_surrounded(axis_t axis, int idx_i, int idx_j)
     if (axis == ENUM_HOR_X) {
         diffR = GET_ABS(nM_i->mM.minX - nM_j->mM.maxX);
         diffL = GET_ABS(nM_i->mM.maxX - nM_j->mM.minX);
-        sameOppLine = (((nM_i->mM.minY > (nM_j->mM.minY - MULTI_GHOST_MIN_MAX_TOL) && nM_i->mM.minY < (nM_j->mM.maxY + MULTI_GHOST_MIN_MAX_TOL)) &&
-            (nM_i->mM.maxY >(nM_j->mM.minY - MULTI_GHOST_MIN_MAX_TOL) && nM_i->mM.maxY < (nM_j->mM.maxY + MULTI_GHOST_MIN_MAX_TOL))) ||
-            ((nM_j->mM.minY >(nM_i->mM.minY - MULTI_GHOST_MIN_MAX_TOL) && nM_j->mM.minY < (nM_i->mM.maxY + MULTI_GHOST_MIN_MAX_TOL)) &&
-            (nM_j->mM.maxY >(nM_i->mM.minY - MULTI_GHOST_MIN_MAX_TOL) && nM_j->mM.maxY < (nM_i->mM.maxY + MULTI_GHOST_MIN_MAX_TOL))));
+        sameOppLine = (((nM_i->mM.minY > (nM_j->mM.minY - ghost_min_max_dist) && nM_i->mM.minY < (nM_j->mM.maxY + ghost_min_max_dist)) &&
+            (nM_i->mM.maxY >(nM_j->mM.minY - ghost_min_max_dist) && nM_i->mM.maxY < (nM_j->mM.maxY + ghost_min_max_dist))) ||
+            ((nM_j->mM.minY >(nM_i->mM.minY - ghost_min_max_dist) && nM_j->mM.minY < (nM_i->mM.maxY + ghost_min_max_dist)) &&
+            (nM_j->mM.maxY >(nM_i->mM.minY - ghost_min_max_dist) && nM_j->mM.maxY < (nM_i->mM.maxY + ghost_min_max_dist))));
                 }
     else {
         diffR = GET_ABS(nM_i->mM.minY - nM_j->mM.maxY);
         diffL = GET_ABS(nM_i->mM.maxY - nM_j->mM.minY);
-        sameOppLine = (((nM_i->mM.minX >(nM_j->mM.minX - MULTI_GHOST_MIN_MAX_TOL) && nM_i->mM.minX < (nM_j->mM.maxX + MULTI_GHOST_MIN_MAX_TOL)) &&
-            (nM_i->mM.maxX >(nM_j->mM.minX - MULTI_GHOST_MIN_MAX_TOL) && nM_i->mM.maxX < (nM_j->mM.maxX + MULTI_GHOST_MIN_MAX_TOL))) ||
-            ((nM_j->mM.minX >(nM_i->mM.minX - MULTI_GHOST_MIN_MAX_TOL) && nM_j->mM.minX < (nM_i->mM.maxX + MULTI_GHOST_MIN_MAX_TOL)) &&
-            (nM_j->mM.maxX >(nM_i->mM.minX - MULTI_GHOST_MIN_MAX_TOL) && nM_j->mM.maxX < (nM_i->mM.maxX + MULTI_GHOST_MIN_MAX_TOL))));
+        sameOppLine = (((nM_i->mM.minX >(nM_j->mM.minX - ghost_min_max_dist) && nM_i->mM.minX < (nM_j->mM.maxX + ghost_min_max_dist)) &&
+            (nM_i->mM.maxX >(nM_j->mM.minX - ghost_min_max_dist) && nM_i->mM.maxX < (nM_j->mM.maxX + ghost_min_max_dist))) ||
+            ((nM_j->mM.minX >(nM_i->mM.minX - ghost_min_max_dist) && nM_j->mM.minX < (nM_i->mM.maxX + ghost_min_max_dist)) &&
+            (nM_j->mM.maxX >(nM_i->mM.minX - ghost_min_max_dist) && nM_j->mM.maxX < (nM_i->mM.maxX + ghost_min_max_dist))));
                 }
     IS_DEBUG_FLAG{ TRACE_MIAT(".axis,(idx_i,idx_j)diffR,diffL: %d(%d,%d)%0.1f,%0.1f %d", axis, idx_i, idx_j, diffR, diffL, sameOppLine); };
 
@@ -6230,7 +6246,7 @@ static int multi_is_adjacent_tp_surrounded(axis_t axis, int idx_i, int idx_j)
             IS_DEBUG_FLAG{ TRACE_MIAT(".width: %0.1f (%0.1f)", width_i, width_j); };
             if (width_j < width_i)
             {
-                IS_DEBUG_FLAG{ TRACE_MIAT("  =.=>%d", idx_j); };
+                IS_DEBUG_FLAG{ TRACE_MIAT(".=>%d", idx_j); };
                 return 1; //found
             }
             width_i = nM_i->multiArea * sizeRatio;
@@ -6238,7 +6254,7 @@ static int multi_is_adjacent_tp_surrounded(axis_t axis, int idx_i, int idx_j)
             IS_DEBUG_FLAG{ TRACE_MIAT(".area: %0.1f (%0.1f)", width_i, width_j); };
             if (width_j < width_i)
             {
-                IS_DEBUG_FLAG{ TRACE_MIAT(".=>%d", idx_j); };
+                IS_DEBUG_FLAG{ TRACE_MIAT(".==>%d", idx_j); };
                 return 1; //found
             }
         }
@@ -7180,39 +7196,43 @@ int BG_clipping_multi(int multiLoopCnt)
             clipping_var_reset();
             clipping_add_initial_polygon(polyIdx);
             ret = clipping_multi_remained(ENUM_HOR_X, &BS_initial_polygon[polyIdx], -1); //-1:chk eraser
+            IS_DEBUG_FLAG{TRACE_CM2("retX..(%d) %d %d", polyIdx, ret, BS_pclipping_info.eraser_pen);};
             if (ret && BS_pclipping_info.eraser_pen) {
-                IS_DEBUG_FLAG{
-                    TRACE_NOP;
-                };
                 if (BS_pclipping_info.eraser_pen == 1) {
                 BS_pclipping_info.polygon_cnt = 1;
                 }
                 skipClipping++; //found eraser or pen
             }
+#if 1 //nsmoon@230802 WMB-CTSI-0650-VE-FE_BE-APP/Issues/#7
+            if (1) {
+#else
             else {
+#endif
 				clipping_var_init(); //nsmoon@200318
                 clipping_var_reset();
                 clipping_add_initial_polygon(polyIdx);
                 ret = clipping_multi_remained(ENUM_VER_Y, &BS_initial_polygon[polyIdx], -1); //-1:chk eraser
+                IS_DEBUG_FLAG{TRACE_CM2("retY..(%d) %d %d", polyIdx, ret, BS_pclipping_info.eraser_pen);};
                 if (ret && BS_pclipping_info.eraser_pen) {
-                    IS_DEBUG_FLAG{
-                        TRACE_NOP;
-                    };
                     if (BS_pclipping_info.eraser_pen == 1) {
                     BS_pclipping_info.polygon_cnt = 1;
                     }
                     skipClipping++; //found eraser or pen
                 }
             }
-            IS_DEBUG_FLAG{
-                TRACE_NOP;
-            };
             }
 #if 1 //for test, not-clipping @big-eraser
+#if 1 //nsmoon@230802 WMB-CTSI-0650-VE-FE_BE-APP/Issues/#7
+        if (skipClipping > 1) {
+#else
             if (skipClipping) {
+#endif
                 if (BS_pclipping_info.eraser_pen == 1) {
                     //eraser
                     clipping_var_swap();
+                IS_DEBUG_FLAG{
+                    TRACE_NOP;
+                };
                 }
             }
             else
@@ -7338,6 +7358,7 @@ int BG_clipping_multi(int multiLoopCnt)
                     BS_touch_info_multi[touch_info_cnt].centerPos.y = (min_max.minY + min_max.maxY) * 0.5f;
                     BS_touch_info_multi[touch_info_cnt].multiArea = polygon_area;
                 BS_touch_info_multi[touch_info_cnt].no_clip_y = BS_pclipping_info.no_clip_y; //nsmoon@210308
+                BS_touch_info_multi[touch_info_cnt].eraser_pen = BS_pclipping_info.eraser_pen; //nsmoon@230802 WMB-CTSI-0650-VE-FE_BE-APP/Issues/#7
 #ifdef MULTI_SENSOR_RANGE_OLD //nsmoon@200119
                     BS_touch_info_multi[touch_info_cnt].sRx = BS_pclipping_info.polygon_range[tIdx]; //sensor_range_x[tIdx];
                     BS_touch_info_multi[touch_info_cnt].sRy = BS_sensor_range_y[tIdx];
@@ -7454,15 +7475,18 @@ IS_DEBUG_FLAG {
 #if (DEBUG_BG_clipping_multi > 0) //def DRAW_POLYGON_TEST  //nsmoon@170202
     //SEND_POLY(0, 0x21, MY_COLOR);
     IS_DEBUG_FLAG{
+        int tmpCnt = 0;
         for (i = 0; i < touch_info_cnt; i++) {
             if ((BS_touch_info_multi[i].multiStat & MULTISTAT_REMOVED_MASK) != 0) {
                 //removed
                 DEBUG_SHOW_MIN_MAX(&BS_touch_info_multi[i].mM, MY_COLOR - 1, 0);
             }
             else {
+                tmpCnt++;
                 DEBUG_SHOW_MIN_MAX(&BS_touch_info_multi[i].mM, MY_COLOR - 4, 0);
+            }
         }
-    }
+        TRACE_CM("touch_info_cnt= %d/%d", tmpCnt, touch_info_cnt);
         TRACE_NOP;
     };
 #endif
@@ -7610,7 +7634,6 @@ int BG_clipping_multi_post(int multiLoopCnt)
     };
 
 #if 1 //remove small tp, which is closed with large tp
-#define DEBUG_MULTI_SMALL_CLOSED_LARGE  0
     /////////////////////////////////////////////////////////////////////////
     //remove small tp, which is closed with large tp
     /////////////////////////////////////////////////////////////////////////
@@ -7688,7 +7711,6 @@ int BG_clipping_multi_post(int multiLoopCnt)
     tpCntSort = touch_info_sort(0, touch_info_cnt);
 
 #if 1 //remove small tp, which is surrounded with large tp
-#define DEBUG_MULTI_SMALL_SURROUNED_LARGE   0
     ///////////////////////////////////////////////////////
     //remove small tp, which is surrounded with large tp
     ///////////////////////////////////////////////////////
@@ -7713,6 +7735,7 @@ int BG_clipping_multi_post(int multiLoopCnt)
                 }
 #if (DEBUG_MULTI_SMALL_SURROUNED_LARGE > 0)
                 IS_DEBUG_FLAG{
+                    TRACE_CM("idx_i/idx_j= %d/%d %d/%d %0.1f/%0.1f", idx_i, idx_j, BS_touch_info_multi[idx_i].eraser_pen, BS_touch_info_multi[idx_j].eraser_pen, BS_touch_info_multi[idx_i].multiArea, BS_touch_info_multi[idx_j].multiArea);
                     //TRACE_CM("centerPos= (%0.1f, %0.1f)(%0.1f, %0.1f)", BS_touch_info_multi[idx_i].centerPos.x, BS_touch_info_multi[idx_i].centerPos.y, BS_touch_info_multi[idx_j].centerPos.x, BS_touch_info_multi[idx_j].centerPos.y);
                     SEND_POLY(0, 0x21, MY_COLOR);
                     DEBUG_SHOW_BS_TOUCH_POLYGON(touch_info_cnt, MY_COLOR - 4);

@@ -15,8 +15,9 @@
  */
 /* ************************************************************************** */
 #include "backend.h"
-#include "backend_postp.h"
 #include "bezier.h"
+#include "backend_postp.h"
+
 
 #if !defined(_WIN32) && !defined(WIN32)
 #include "app.h"
@@ -106,7 +107,7 @@ ATTR_BACKEND_RAM3 float wheel_cordX, wheel_cordY;
 #endif
 
 ATTR_BACKEND_RAM3 mBz tBz[ALLOWABLE_TOUCH_DATA_IO];
-ATTR_BACKEND_RAM3 mBzStatus[ALLOWABLE_TOUCH_DATA_IO];
+ATTR_BACKEND_RAM3 uint8_t mBzStatus[ALLOWABLE_TOUCH_DATA_IO];
 
 #if defined(_WIN32) || defined(WIN32) //nsmoon@200224
 float s_sensor_zero_x, s_sensor_end_x;
@@ -2016,7 +2017,18 @@ static int decide_touch_size_750_132(touchDataSt_t *pCurDataIn, int idx, touchDa
 	        size_type = ENUM_SIZE_MARKER; //pen
 	    }
 	    else {
-	        size_type = ENUM_SIZE_UNKNOWN; //unknown
+
+#if 1//def SIZE_UNKNOWN_DISABLE
+            if(multiflag == 1)
+            {
+                pCurDataIn[idx].status = TOUCH_DOWN_STATE;
+                size_type = ENUM_SIZE_MARKER; //pen
+            }
+            else size_type = ENUM_SIZE_UNKNOWN; //unknown
+
+#else
+             size_type = ENUM_SIZE_UNKNOWN; //unknown
+#endif
 	    }
 	    if (size_type == ENUM_SIZE_MARKER) {
 	        if (w > eraser_size_1) {
@@ -2365,7 +2377,8 @@ static int update_touch_status(touchDataSt_t *pCurDataIn, int curInLength ,touch
                                         pCurDataIn[i].xSize = s_vtFilteredData[id].xSize;
                                         pCurDataIn[i].ySize = s_vtFilteredData[id].ySize;
 
-                                        decide_touch_size_750_132(pCurDataIn, i, pPrevDataIn, 0);
+                                       // decide_touch_size_750_132(pCurDataIn, i, pPrevDataIn, 0);
+                                        decide_touch_size_750_132(pCurDataIn, i, pPrevDataIn, curInLength);
 #if 0
                                         pCurDataIn[i].xCord = pPrevDataIn[prevIdx].xCord;
                                         pCurDataIn[i].yCord = pPrevDataIn[prevIdx].yCord;
@@ -2430,11 +2443,11 @@ static int update_touch_status(touchDataSt_t *pCurDataIn, int curInLength ,touch
                 break;
             }
 #endif
-#if 0 //defined(_WIN32) || defined(WIN32) //1: update size@down-state
+#if defined(_WIN32) || defined(WIN32) //1: update size@down-state
 #if defined(SHOW_DEBUG_SIZE_DOWN_0205) || defined(DEBUG_FUNCTION_ENABLE_RELEASE)
-#if (MODEL_SPT == MODEL_CTKS_750_V130) || (MODEL_SPT == MODEL_CTKS_750_V140)  || (MODEL_SPT == MODEL_CTSK_850_V100) //nsmoon@191218, nsmoon@201103
-            add_pos_info4test(pCurDataIn, i);
-            decide_touch_size_750_132(pCurDataIn, i, pPrevDataIn, 0);
+#if 1 //(MODEL_SPT == MODEL_CTKS_750_V130) || (MODEL_SPT == MODEL_CTKS_750_V140)  || (MODEL_SPT == MODEL_CTSK_850_V100) //nsmoon@191218, nsmoon@201103
+            //add_pos_info4test(pCurDataIn, i);
+            decide_touch_size_750_132(pCurDataIn, i, pPrevDataIn, curInLength);
             //decide_touch_size_750_test(pCurDataIn, i, pPrevDataIn);
 #endif
             //if (i == 0) {
@@ -2463,10 +2476,10 @@ static int update_touch_status(touchDataSt_t *pCurDataIn, int curInLength ,touch
 #ifdef SIZE_UP_FILTER_ENABLE
 #define THR10_50_RATIO_UP		0.1f//0.25f	//0.1f
 #define THR10_50_RATIO_UP_2ND	0.50f
-#define UP_CON_SIZE				1.75f	//2.4f//2.20f //REF
-#define UP_CON_SIZE_EDGE		1.5f
-#define UP_CON_SIZE_SIDE		1.5f
-#define UP_CON_SIZE_ERASE		1.7f
+#define UP_CON_SIZE				1.1f	//2.4f//2.20f //REF
+#define UP_CON_SIZE_EDGE		1.1f
+#define UP_CON_SIZE_SIDE		1.1f
+#define UP_CON_SIZE_ERASE		1.1f
 
             if(s_eraserFlag)
             {

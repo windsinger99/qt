@@ -13,6 +13,7 @@ INPUT(
 ./release\backend_postp.o
 ./release\hid.o
 ./release\backend_draw_thread.o
+./release\bezier.o
 ./release\moc_mainwindow.o
 ./release\moc_CTouchPanelView.o
 ./release\moc_ctrldialog.o

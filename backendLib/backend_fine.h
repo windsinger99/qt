@@ -94,7 +94,7 @@ extern "C" {
 #endif //1
 
 #ifdef FINE_CLIPPING_NEW
-#if defined(GN65_TEST) || defined(N75_TEST) || defined(N65_TEST) //nsmoon@230328
+#if defined(GN65_TEST) || defined(N75_TEST) || defined(N65_TEST) //nsmoon@230328o
 #define FINE_INITIAL_GRP_DIST_SHADOW             1.5f
 #define FINE_INITIAL_GRP_DIST_SHADOW_OPP         2.5f
 #else
@@ -109,9 +109,9 @@ extern "C" {
 #if defined(GN65_TEST) //nsmoon@221122
 #define FINE_INITIAL_GRP_DIST_X_OLD     2.3f //1.5f
 #define FINE_INITIAL_GRP_DIST_Y_OLD     1.5f //1.3f
-#elif defined(N75_TEST__) || defined(N65_TEST__)//nsmoon@230322
-#define FINE_INITIAL_GRP_DIST_X_OLD     2.3f
-#define FINE_INITIAL_GRP_DIST_Y_OLD     2.0f
+#elif defined(N75_TEST) || defined(N65_TEST)//nsmoon@230322
+#define FINE_INITIAL_GRP_DIST_X_OLD     1.5f //2.3f
+#define FINE_INITIAL_GRP_DIST_Y_OLD     1.6f
 #else
 #define FINE_INITIAL_GRP_DIST_X_OLD     1.5f
 #define FINE_INITIAL_GRP_DIST_Y_OLD     1.3f
